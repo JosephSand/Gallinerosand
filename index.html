@@ -204,7 +204,7 @@
         <span id="toast-message" class="text-sm font-semibold">¡Operación exitosa!</span>
     </div>
 
-    <!-- LOGICA DE LA APLICACIÓN (JAVASCRIPT CONSOLIDADO) -->
+    <!-- LOGICA DE LA APLICACIÓN -->
     <script>
         // 1. CONFIGURACIONES GLOBALES Y VARIABLES DE CATÁLOGO (DEFINIDAS UNA SOLA VEZ)
         const MONTHS = [
@@ -230,7 +230,7 @@
             { id: 15, text: "¿Su cloaca está sucia, húmeda, obstruida o inflamada?" }
         ];
 
-        // TAREAS OBTENIDAS DE LA GUÍA DE MANEJO DEL GALLINERO (Muestra de 16 tareas)
+        // TAREAS OBTENIDAS DE LA GUÍA DE MANEJO DEL GALLINERO (16 tareas detalladas)
         const ROUTINE_TASKS = [
             // DIARIO
             { id: 'recolectar_huevos', text: 'Recolectar Huevos (AM/PM)', category: 'Diario' },
@@ -678,7 +678,7 @@
                         </div>
                     </div>
 
-                    <!-- CONTENEDOR DE TABLA DE POBLACIÓN (Con "N°") -->
+                    <!-- CONTENEDOR DE TABLA DE POBLACIÓN -->
                     <div id="poblacion-print-area" class="bg-white border border-stone-200/80 rounded-2xl shadow-sm overflow-hidden">
                         <div class="p-6 border-b border-stone-100 hidden print:block">
                             <h2 class="text-xl font-bold text-brand-900 font-black">Registro de Población de Aves - Gallinero Sand</h2>
@@ -937,7 +937,7 @@
             }
         }
 
-        // 7. MÓDULO 3: DOCTOR POLLO
+        // 7. MÓDULO 3: DOCTOR POLLO (RECONSTRUIDO TOTALMENTE Y SEGURO)
         function renderDoctorPollo(target) {
             const hasChickens = state.chickens.length > 0;
             const currentChicken = state.chickens.find(c => c.id === state.drPollo.selectedChickenId);
@@ -1036,6 +1036,175 @@
                     `}
                 </div>
             `;
+        }
+
+        function selectChickenForDiagnosis(id) {
+            state.drPollo.selectedChickenId = id;
+            state.drPollo.currentQuestionIndex = 0;
+            state.drPollo.answers = [];
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function answerQuestion(val) {
+            state.drPollo.answers.push(val);
+            state.drPollo.currentQuestionIndex++;
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function prevQuestion() {
+            if (state.drPollo.currentQuestionIndex > 0) {
+                state.drPollo.currentQuestionIndex--;
+                state.drPollo.answers.pop();
+                renderCurrentTab();
+                lucide.createIcons();
+            }
+        }
+
+        function calculateDiagnosis() {
+            const answers = state.drPollo.answers;
+            
+            const respiratoryScore = (answers[4] ? 2 : 0) + (answers[7] ? 1 : 0); // Q5, Q8
+            const digestiveScore = (answers[3] ? 2 : 0) + (answers[10] ? 1 : 0) + (answers[14] ? 1 : 0); // Q4, Q11, Q15
+            const parasiticScore = (answers[2] ? 1 : 0) + (answers[9] ? 2 : 0); // Q3, Q10
+            const neurologicalScore = (answers[8] ? 2 : 0) + (answers[13] ? 2 : 0); // Q9, Q14
+            
+            const totalYes = answers.filter(a => a === true).length;
+
+            let result = {
+                enfermedad: "Sana / Estrés Leve de Postura",
+                gravedad: "Leve",
+                descripcion: "El ave no presenta un cuadro clínico alarmante. Puede tratarse simplemente de agotamiento normal por postura de huevos o un leve resfriado pasajero.",
+                tratamientoNatural: "Infusión tibia de manzanilla en el bebedero para calmar la irritación. Asegurar que tenga acceso a un lugar resguardado de corrientes de aire y sol directo. Adicionar un suplemento vitamínico reconstituyente en el agua.",
+                tratamientoMedico: "No se requiere tratamiento de medicina veterinaria comercial (pastillas o inyecciones) por el momento. Monitorea su comportamiento los siguientes 3 días.",
+                sugiereCuarentena: false,
+                sugiereTratamiento: false
+            };
+
+            if (neurologicalScore >= 2 || totalYes >= 7) {
+                result.enfermedad = "Alerta: Sospecha de Influenza Aviar o Newcastle";
+                result.gravedad = "Grave (Crítica)";
+                result.descripcion = "Presencia de sintomatología neurológica (parálisis, temblores o cuello torcido) combinada con decaimiento general crítico. Estas enfermedades son altamente contagiosas y pueden diezmar el corral rápidamente.";
+                result.tratamientoNatural = "No existen tratamientos naturales eficaces para estas patologías. El soporte principal consiste en aislamiento hermético absoluto y provisión de agua con electrolitos orales para evitar deshidratación extrema.";
+                result.tratamientoMedico = "Es obligatoria la cuarentena. Se debe aislar al animal en un recinto cerrado separado de toda la población. Se sugiere la consulta inmediata con un médico veterinario oficial o la autoridad sanitaria local. De manera preventiva para el resto de la población, aplicar antibióticos de amplio espectro en el agua e inyecciones de complejo vitamínico B de soporte neurológico.";
+                result.sugiereCuarentena = true;
+                result.sugiereTratamiento = true;
+            } else if (digestiveScore >= 2) {
+                result.enfermedad = "Coccidiosis / Enteritis Infecciosa";
+                result.gravedad = "Moderada a Grave";
+                result.descripcion = "Sintomatología digestiva evidente con sospecha de infección por parásitos coccidios (diarreas con moco o sangre) o bacterias que dañan la pared intestinal.";
+                result.tratamientoNatural = "Suministrar aceite esencial de orégano diluido en el agua de bebida (poderoso anticoccidiano y bactericida natural), vinagre de manzana orgánico (10ml por litro de agua) para acidificar el buche y evitar proliferación bacteriana, y carbón activado fino triturado en su comida.";
+                result.tratamientoMedico = "Se sugiere aislar al animal de inmediato para evitar propagación de ooquistes en la paja. Administrar Amprolio soluble en el agua durante 5-7 días consecutivos, o antibióticos sulfonamidas (Sulfas). En caso agudos o extremos, se requerirá la inyección directa de antibióticos de soporte veterinario.";
+                result.sugiereCuarentena = true;
+                result.sugiereTratamiento = true;
+            } else if (respiratoryScore >= 2) {
+                result.enfermedad = "Coriza Infecciosa / Bronquitis Infecciosa";
+                result.gravedad = "Moderada";
+                result.descripcion = "Enfermedad del tracto respiratorio superior caracterizada por estornudos, secreciones, ruidos al respirar u ojos con moco e inflamación.";
+                result.tratamientoNatural = "Hacer vaporizaciones directas con hojas de eucalipto en su recinto de descanso por las noches. Agregar dientes de ajo machacados y cebolla morada picada en el agua de bebida (antibióticos naturales muy potentes).";
+                result.tratamientoMedico = "Sugerida la cuarentena. Si los síntomas persisten por más de 48 horas, administrar de manera obligatoria antibióticos específicos como Tilosina soluble o Enrofloxacina oral de uso avícola. Para casos muy severos de postración, se requerirá la inyección intramuscular de Oxitetraciclina líquida veterinaria.";
+                result.sugiereCuarentena = true;
+                result.sugiereTratamiento = true;
+            } else if (parasiticScore >= 2) {
+                result.enfermedad = "Infestación Aguda de Ácaros o Piojos";
+                result.gravedad = "Leve a Moderada";
+                result.descripcion = "La presencia de ectoparásitos provoca irritación severa, picor persistente, pérdida del plumaje y eventualmente anemia severa evidenciada por la palidez en la cresta.";
+                result.tratamientoNatural = "Colocar un cajón profundo lleno de cenizas limpias de leña combinada con tierra de diatomeas grado alimenticio para que las gallinas tomen 'baños de polvo' que sequen mecánicamente los ácaros. Rociar el cuerpo del ave con agua de neem.";
+                result.tratamientoMedico = "No requiere cuarentena obligatoria pero sí tratamiento riguroso. Aplicar de 1 a 2 gotas de Ivermectina líquida al 1% vía tópica en la piel de la nuca del ave afectada. Desinfectar minuciosamente todo el corral, paja e infraestructura de madera con aspersión de cipermetrina para evitar la reinfestación nocturna.";
+                result.sugiereCuarentena = false;
+                result.sugiereTratamiento = true;
+            }
+
+            return result;
+        }
+
+        function renderDiagnosisResult() {
+            const report = calculateDiagnosis();
+            const chicken = state.chickens.find(c => c.id === state.drPollo.selectedChickenId);
+
+            return `
+                <div class="space-y-6">
+                    <div class="flex items-center gap-2 text-emerald-700">
+                        <i data-lucide="award" class="w-6 h-6"></i>
+                        <h3 class="text-lg font-bold">Diagnóstico Presuntivo Concluido</h3>
+                    </div>
+
+                    <!-- Cuadro Médico -->
+                    <div class="bg-stone-50 border border-stone-200 rounded-2xl p-5 space-y-3.5">
+                        <div class="flex justify-between items-start gap-4 flex-wrap">
+                            <div>
+                                <span class="text-xs font-bold text-stone-400 uppercase tracking-wider">Resultado Clínico para ${chicken.nombre}</span>
+                                <h4 class="text-xl font-extrabold text-stone-900 mt-1">${report.enfermedad}</h4>
+                            </div>
+                            <span class="px-3 py-1.5 text-xs font-bold rounded-xl ${
+                                report.gravedad.includes('Grave') ? 'bg-red-100 text-red-700 border border-red-200' :
+                                report.gravedad.includes('Moderada') ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                                'bg-green-100 text-green-700 border border-green-200'
+                            }">Gravedad: ${report.gravedad}</span>
+                        </div>
+                        <p class="text-sm text-stone-600 leading-relaxed">${report.descripcion}</p>
+                    </div>
+
+                    <!-- Tratamientos -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="border border-emerald-100 bg-emerald-50/40 p-5 rounded-2xl space-y-2">
+                            <h5 class="text-sm font-bold text-emerald-900 flex items-center gap-2"><i data-lucide="leaf" class="w-4 h-4"></i> Tratamiento Natural</h5>
+                            <p class="text-xs text-stone-600 leading-relaxed">${report.tratamientoNatural}</p>
+                        </div>
+                        <div class="border border-blue-100 bg-blue-50/40 p-5 rounded-2xl space-y-2">
+                            <h5 class="text-sm font-bold text-blue-900 flex items-center gap-2"><i data-lucide="pipette" class="w-4 h-4"></i> Tratamiento Médico</h5>
+                            <p class="text-xs text-stone-600 leading-relaxed">${report.tratamientoMedico}</p>
+                        </div>
+                    </div>
+
+                    <!-- Acciones Automatizadas -->
+                    <div class="border-t border-stone-100 pt-5 space-y-3">
+                        <h4 class="text-xs font-bold text-stone-400 uppercase tracking-wider">Acciones Automatizadas</h4>
+                        <div class="flex flex-wrap gap-2">
+                            ${report.sugiereCuarentena ? `
+                                <button onclick="applyDiagnosticAction('Cuarentena')" class="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow">
+                                    <i data-lucide="shield-alert" class="w-4 h-4"></i> Aislar en Cuarentena
+                                </button>
+                            ` : ''}
+                            ${report.sugiereTratamiento ? `
+                                <button onclick="applyDiagnosticAction('Tratamiento')" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow">
+                                    <i data-lucide="activity" class="w-4 h-4"></i> Iniciar Tratamiento
+                                </button>
+                            ` : ''}
+                            <button onclick="applyDiagnosticAction('Sana')" class="px-4 py-2.5 border border-stone-200 hover:bg-stone-50 text-stone-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5">
+                                <i data-lucide="smile" class="w-4 h-4"></i> Descartar síntoma (Sana)
+                            </button>
+                            <button onclick="resetDiagnosis()" class="px-4 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-600 font-bold rounded-xl text-xs transition">
+                                Reiniciar Cuestionario
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function applyDiagnosticAction(actionType) {
+            const chicken = state.chickens.find(c => c.id === state.drPollo.selectedChickenId);
+            if (!chicken) return;
+
+            let finalStateName = 'Sana';
+            if (actionType === 'Cuarentena') finalStateName = 'En Cuarentena';
+            if (actionType === 'Tratamiento') finalStateName = 'En Tratamiento';
+
+            chicken.estado = finalStateName;
+            saveState();
+            showToast(`¡El estado de ${chicken.nombre} se actualizó a '${finalStateName}'!`);
+            
+            resetDiagnosis();
+            navigate('poblacion');
+        }
+
+        function resetDiagnosis() {
+            state.drPollo.currentQuestionIndex = 0;
+            state.drPollo.answers = [];
+            renderCurrentTab();
+            lucide.createIcons();
         }
 
         // 8. MÓDULO 4: CALENDARIO DE RUTINAS
@@ -1208,87 +1377,6 @@
                     </div>
                 </div>
             `;
-        }
-
-        function selectCalendarDay(day) {
-            state.selectedDay = day;
-            renderCurrentTab();
-            lucide.createIcons();
-        }
-
-        function selectMonth(val) {
-            state.currentMonth = parseInt(val);
-            state.selectedDay = 1; 
-            renderCurrentTab();
-            lucide.createIcons();
-        }
-
-        function selectYear(val) {
-            state.currentYear = parseInt(val);
-            state.selectedDay = 1;
-            renderCurrentTab();
-            lucide.createIcons();
-        }
-
-        function changeMonth(dir) {
-            let m = state.currentMonth + dir;
-            let y = state.currentYear;
-            if (m < 0) {
-                m = 11;
-                y--;
-            } else if (m > 11) {
-                m = 0;
-                y++;
-            }
-            state.currentMonth = m;
-            state.currentYear = y;
-            state.selectedDay = 1;
-            renderCurrentTab();
-            lucide.createIcons();
-        }
-
-        function toggleTaskStatus(dateKey, taskId, isChecked) {
-            if (!state.calendarTasks[dateKey]) {
-                state.calendarTasks[dateKey] = {};
-            }
-            state.calendarTasks[dateKey][taskId] = isChecked;
-            saveState();
-            renderCurrentTab();
-            lucide.createIcons();
-        }
-
-        function markAllTasksComplete(dateKey, isComplete) {
-            const dailyTasksList = getTasksForDate(state.currentYear, state.currentMonth, state.selectedDay);
-            if (!state.calendarTasks[dateKey]) {
-                state.calendarTasks[dateKey] = {};
-            }
-            dailyTasksList.forEach(t => {
-                state.calendarTasks[dateKey][t.id] = isComplete;
-            });
-            saveState();
-            showToast(isComplete ? "¡Todas las tareas marcadas como realizadas!" : "Tareas limpiadas.");
-            renderCurrentTab();
-            lucide.createIcons();
-        }
-
-        function saveEggsCollected(dateKey, val) {
-            if (!state.calendarTasks[dateKey]) {
-                state.calendarTasks[dateKey] = {};
-            }
-            const count = parseInt(val);
-            state.calendarTasks[dateKey].eggsCollected = isNaN(count) ? 0 : count;
-            
-            if (count > 0) {
-                state.calendarTasks[dateKey]['recolectar_huevos'] = true;
-            } else if (count === 0) {
-                state.calendarTasks[dateKey]['recolectar_huevos'] = false;
-            }
-            saveState();
-        }
-
-        function handleEggInputBlur() {
-            renderCurrentTab();
-            lucide.createIcons();
         }
 
         function isDayComplete(year, month, day) {
@@ -1510,7 +1598,6 @@
             lucide.createIcons();
         }
 
-        // CONTROL DE DATOS Y ENLACES
         function selectFinancesYear(val) {
             state.currentYear = parseInt(val);
             renderCurrentTab();
