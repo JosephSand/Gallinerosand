@@ -1,0 +1,1711 @@
+
+<!DOCTYPE html>
+<html lang="es" class="h-full bg-stone-50 text-stone-800">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gallinero Sand - Control Avanzado de Gallineros</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        },
+                        earth: {
+                            50: '#fafaf9',
+                            100: '#f5f5f4',
+                            200: '#e7e5e4',
+                            600: '#57534e',
+                            700: '#44403c',
+                            800: '#292524',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Estilos CSS para Impresión Optimizada */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+                font-size: 11pt !important;
+                padding-bottom: 0 !important;
+            }
+            /* Ocultar elementos innecesarios */
+            aside, nav, button, form, .no-print, .btn, input, select, .action-buttons, header, .alert-print-banner {
+                display: none !important;
+            }
+            /* Expandir el contenido para tomar todo el ancho */
+            main, #main-content, #dashboard-view, #poblacion-view {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+            }
+            /* Formatear tarjetas del Dashboard para un reporte ejecutivo */
+            .print-report-grid {
+                display: grid !important;
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 1.25rem !important;
+                margin-bottom: 2rem !important;
+            }
+            .print-card {
+                border: 1px solid #e7e5e4 !important;
+                border-radius: 0.5rem !important;
+                padding: 1rem !important;
+                background: white !important;
+            }
+            /* Optimizar tablas */
+            table {
+                width: 100% !important;
+                border-collapse: collapse !important;
+                margin-top: 1.5rem !important;
+            }
+            th, td {
+                border: 1px solid #d6d3d1 !important;
+                padding: 8px 12px !important;
+                text-align: left !important;
+            }
+            thead {
+                background-color: #f5f5f4 !important;
+            }
+            /* Evitar saltos de página a mitad de elementos */
+            tr, .print-card {
+                page-break-inside: avoid !important;
+            }
+            h1, h2, h3 {
+                page-break-after: avoid !important;
+                color: #14532d !important;
+            }
+            /* Forzar visualización de colores de impresión */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+
+        /* Estilo general para scrollbars suaves */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f5f5f4;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #d6d3d1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a29e;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col antialiased bg-stone-50">
+
+    <!-- CABECERA GLOBAL -->
+    <header class="bg-earth-800 text-white px-4 md:px-8 py-3.5 flex items-center justify-between shadow-sm sticky top-0 z-40 no-print">
+        <div class="flex items-center gap-3">
+            <div class="bg-brand-600 p-2 rounded-xl text-white shadow-md">
+                <i data-lucide="egg" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h1 class="text-base md:text-lg font-bold tracking-tight text-white leading-none">Gallinero Sand</h1>
+                <span class="text-[10px] text-stone-400 font-medium">Control Avícola Premium</span>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 text-xs text-stone-400 bg-earth-700/50 px-3 py-1.5 rounded-lg border border-earth-600/30">
+            <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+            <span class="hidden sm:inline">Sistema de Registro Mensual</span>
+            <span class="sm:hidden">Sand Pro</span>
+        </div>
+    </header>
+
+    <!-- CONTENEDOR PRINCIPAL -->
+    <main class="flex-1 flex flex-col min-w-0 pb-24">
+        <!-- ÁREA DE CONTENIDO -->
+        <div id="main-content" class="flex-1 p-4 md:p-8 max-w-7xl w-full mx-auto">
+            <!-- CARGADO DINÁMICAMENTE POR JS -->
+        </div>
+    </main>
+
+    <!-- MENÚ DE NAVEGACIÓN FIJADO EN LA PARTE INFERIOR (Estilo claro con opción activa en Negro Intenso) -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-stone-200 h-16 md:h-20 py-2 px-1 flex items-center justify-around z-40 no-print shadow-lg">
+        <!-- Botón Dashboard -->
+        <button onclick="navigate('dashboard')" id="nav-dashboard" class="flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 transition-all duration-150">
+            <i data-lucide="layout-dashboard" class="w-5 h-5 mb-0.5 md:w-6 md:h-6"></i>
+            <span class="text-[9px] md:text-xs font-semibold">Dashboard</span>
+        </button>
+        <!-- Botón Población -->
+        <button onclick="navigate('poblacion')" id="nav-poblacion" class="flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 transition-all duration-150">
+            <i data-lucide="feather" class="w-5 h-5 mb-0.5 md:w-6 md:h-6"></i>
+            <span class="text-[9px] md:text-xs font-semibold">Población</span>
+        </button>
+        <!-- Botón Doctor Pollo -->
+        <button onclick="navigate('drpollo')" id="nav-drpollo" class="flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 transition-all duration-150">
+            <i data-lucide="heart-pulse" class="w-5 h-5 mb-0.5 md:w-6 md:h-6"></i>
+            <span class="text-[9px] md:text-xs font-semibold">Dr. Pollo</span>
+        </button>
+        <!-- Botón Rutinas -->
+        <button onclick="navigate('rutinas')" id="nav-rutinas" class="flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 transition-all duration-150">
+            <i data-lucide="calendar" class="w-5 h-5 mb-0.5 md:w-6 md:h-6"></i>
+            <span class="text-[9px] md:text-xs font-semibold">Rutinas</span>
+        </button>
+        <!-- Botón Finanzas -->
+        <button onclick="navigate('finanzas')" id="nav-finanzas" class="flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 transition-all duration-150">
+            <i data-lucide="dollar-sign" class="w-5 h-5 mb-0.5 md:w-6 md:h-6"></i>
+            <span class="text-[9px] md:text-xs font-semibold">Finanzas</span>
+        </button>
+    </nav>
+
+    <!-- SISTEMA DE MODAL PERSONALIZADO -->
+    <div id="custom-modal" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden no-print">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-stone-200 transform scale-100 transition-all duration-200">
+            <div class="flex items-start gap-3">
+                <div class="bg-amber-50 p-3 rounded-full text-amber-600 flex-shrink-0" id="modal-icon-container">
+                    <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <h3 class="text-lg font-bold text-stone-900" id="modal-title">Título</h3>
+                    <p class="text-sm text-stone-500 mt-2" id="modal-body">Descripción del modal.</p>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end gap-3">
+                <button id="modal-btn-cancel" class="px-4 py-2 border border-stone-200 rounded-xl text-stone-700 hover:bg-stone-50 font-semibold text-sm transition">
+                    Cancelar
+                </button>
+                <button id="modal-btn-confirm" class="px-4 py-2 bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl font-semibold text-sm transition shadow-md">
+                    Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NOTIFICACIONES TOAST -->
+    <div id="toast" class="fixed bottom-20 md:bottom-24 right-4 bg-earth-800 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none no-print">
+        <i data-lucide="check-circle-2" class="w-5 h-5 text-brand-400" id="toast-icon"></i>
+        <span id="toast-message" class="text-sm font-semibold">¡Operación exitosa!</span>
+    </div>
+
+    <!-- LOGICA DE LA APLICACIÓN (JAVASCRIPT CONSOLIDADO) -->
+    <script>
+        // 1. CONFIGURACIONES GLOBALES Y VARIABLES DE CATÁLOGO (DEFINIDAS UNA SOLA VEZ)
+        const MONTHS = [
+            "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+            "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        ];
+
+        const QUESTIONS = [
+            { id: 1, text: "¿Muestra cansancio severo, letargo o desgano extremo?" },
+            { id: 2, text: "¿Tiene las plumas notablemente erizadas, aspecto encorvado o triste?" },
+            { id: 3, text: "¿Presenta la cresta o barbillas pálidas, de color morado o desinfladas?" },
+            { id: 4, text: "¿Tiene diarrea líquida constante, de color amarillo, verde o con restos de sangre?" },
+            { id: 5, text: "¿Presenta estornudos, secreciones por la nariz/ojos o emite silbidos al respirar?" },
+            { id: 6, text: "¿Ha disminuido o detenido de forma drástica la postura de huevos?" },
+            { id: 7, text: "¿Tiene inapetencia severa (no come alimento balanceado ni bebe agua)?" },
+            { id: 8, text: "¿Tiene ojos hinchados, con costras o los mantiene cerrados con frecuencia?" },
+            { id: 9, text: "¿Muestra cojera evidente, parálisis de patas, cuello torcido o debilidad extrema en alas?" },
+            { id: 10, text: "¿Detectas ácaros, piojillos o marcas de heridas por picaje en su piel/plumas?" },
+            { id: 11, text: "¿El buche se siente excesivamente blando, hinchado o despide un olor ácido y fermentado?" },
+            { id: 12, text: "¿Ha tenido una pérdida de peso acelerada, sintiendo el hueso del pecho (quilla) muy afilado?" },
+            { id: 13, text: "¿Sientes su cuerpo o patas con una temperatura de calor alarmante al tacto (fiebre)?" },
+            { id: 14, text: "¿Tiene temblores constantes en la cabeza o realiza giros extraños con el cuello?" },
+            { id: 15, text: "¿Su cloaca está sucia, húmeda, obstruida o inflamada?" }
+        ];
+
+        // TAREAS OBTENIDAS DE LA GUÍA DE MANEJO DEL GALLINERO (Muestra de 16 tareas)
+        const ROUTINE_TASKS = [
+            // DIARIO
+            { id: 'recolectar_huevos', text: 'Recolectar Huevos (AM/PM)', category: 'Diario' },
+            { id: 'limpiar_arena_expres', text: 'Limpiar Arena (exprés)', category: 'Diario' },
+            { id: 'agua_fresca_sombra', text: 'Agua Fresca / Sombra', category: 'Diario' },
+            { id: 'contar_aves_noche', text: 'Contar Aves (noche)', category: 'Diario' },
+            // SEMANAL
+            { id: 'lavar_comederos_bebederos', text: 'Lavar Comederos/Bebederos', category: 'Semanal' },
+            { id: 'rellenar_arena_nidos', text: 'Rellenar Arena y Nidos', category: 'Semanal' },
+            { id: 'vinagre_manzana_agua', text: 'Vinagre de Manzana al agua', category: 'Semanal' },
+            { id: 'revisar_ventiladores', text: 'Revisar Ventiladores', category: 'Semanal' },
+            // QUINCENAL
+            { id: 'revision_fisica_aleatoria', text: 'Revisión Física Aleatoria', category: 'Quincenal' },
+            { id: 'limpiar_ventanas_mallas', text: 'Limpiar Ventanas/Mallas', category: 'Quincenal' },
+            { id: 'cajon_bano_ceniza', text: 'Cajón de Baño de Ceniza', category: 'Quincenal' },
+            { id: 'reparar_estructura', text: 'Reparar Estructura', category: 'Quincenal' },
+            // MENSUAL
+            { id: 'cernido_completo_arena', text: 'Cernido Completo de Arena', category: 'Mensual' },
+            { id: 'desinfectar_paredes_perchas', text: 'Desinfectar Paredes/Perchas', category: 'Mensual' },
+            { id: 'evaluar_desparasitacion', text: 'Evaluar Desparasitación', category: 'Mensual' },
+            { id: 'suplemento_calcio', text: 'Suplemento de Calcio', category: 'Mensual' }
+        ];
+
+        // 2. ESTADO GLOBAL DE LA APLICACIÓN
+        let state = {
+            currentTab: 'dashboard',
+            chickens: [],
+            calendarTasks: {}, // YYYY-MM-DD -> { task_id: bool, eggsCollected: number }
+            finances: {}, // YYYY-MM -> { alimento, cama, agua, med, mant, compra, ventaHuevos, ventaGallinas, otrosIngresos }
+            currentMonth: new Date().getMonth(),
+            currentYear: new Date().getFullYear(),
+            selectedDay: new Date().getDate(),
+            drPollo: {
+                selectedChickenId: '',
+                currentQuestionIndex: 0,
+                answers: []
+            },
+            alertDismissed: false
+        };
+
+        // Valores por defecto para semillas de inicialización
+        const DEFAULT_CHICKENS = [
+            { id: 'c1', nombre: 'Clotilde', nacimiento: '2025-06-15', estado: 'Sana' },
+            { id: 'c2', nombre: 'Pancracia', nacimiento: '2025-11-20', estado: 'En Tratamiento' },
+            { id: 'c3', nombre: 'Turuleca', nacimiento: '2024-02-10', estado: 'Sana' },
+            { id: 'c4', nombre: 'Filomena', nacimiento: '2026-03-01', estado: 'Sana' },
+            { id: 'c5', nombre: 'Ramonita', nacimiento: '2025-09-01', estado: 'En Cuarentena' }
+        ];
+
+        const DEFAULT_CALENDAR = {
+            '2026-05-01': { 'recolectar_huevos': true, 'limpiar_arena_expres': true, 'agua_fresca_sombra': true, 'contar_aves_noche': true, 'eggsCollected': 12 }
+        };
+
+        const DEFAULT_FINANCES = {
+            '2026-05': {
+                alimento: 150,
+                cama: 45,
+                agua: 30,
+                med: 25,
+                mant: 50,
+                compra: 80,
+                ventaHuevos: 240,
+                ventaGallinas: 120,
+                otrosIngresos: 15
+            }
+        };
+
+        // 3. PERSISTENCIA DE DATOS (LOCALSTORAGE)
+        function loadState() {
+            const savedState = localStorage.getItem('gallinerosand_state');
+            if (savedState) {
+                try {
+                    state = JSON.parse(savedState);
+                    if (!state.chickens) state.chickens = [...DEFAULT_CHICKENS];
+                    if (!state.calendarTasks) state.calendarTasks = {...DEFAULT_CALENDAR};
+                    if (!state.finances) state.finances = {...DEFAULT_FINANCES};
+                    if (state.currentMonth === undefined) state.currentMonth = new Date().getMonth();
+                    if (state.currentYear === undefined) state.currentYear = new Date().getFullYear();
+                    if (state.selectedDay === undefined) state.selectedDay = new Date().getDate();
+                    if (!state.drPollo) state.drPollo = { selectedChickenId: '', currentQuestionIndex: 0, answers: [] };
+                } catch (e) {
+                    console.error("Error cargando LocalStorage, reiniciando estado.", e);
+                    resetToDefaults();
+                }
+            } else {
+                resetToDefaults();
+            }
+        }
+
+        function resetToDefaults() {
+            state.chickens = [...DEFAULT_CHICKENS];
+            state.calendarTasks = {...DEFAULT_CALENDAR};
+            state.finances = {...DEFAULT_FINANCES};
+            state.currentTab = 'dashboard';
+            saveState();
+        }
+
+        function saveState() {
+            localStorage.setItem('gallinerosand_state', JSON.stringify(state));
+        }
+
+        // 4. SISTEMA DE NAVEGACIÓN Y ENRUTAMIENTO GENERAL
+        function navigate(tabName) {
+            state.currentTab = tabName;
+            
+            const navElements = ['dashboard', 'poblacion', 'drpollo', 'rutinas', 'finanzas'];
+            navElements.forEach(item => {
+                const el = document.getElementById(`nav-${item}`);
+                if (el) {
+                    if (item === tabName) {
+                        el.className = "flex flex-col items-center justify-center flex-1 py-1 text-black font-black transition-all duration-150 scale-105";
+                    } else {
+                        el.className = "flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 transition-all duration-150 hover:scale-102";
+                    }
+                }
+            });
+
+            renderCurrentTab();
+            lucide.createIcons();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function renderCurrentTab() {
+            const container = document.getElementById('main-content');
+            if (state.currentTab === 'dashboard') {
+                renderDashboard(container);
+            } else if (state.currentTab === 'poblacion') {
+                renderPoblacion(container);
+            } else if (state.currentTab === 'drpollo') {
+                renderDoctorPollo(container);
+            } else if (state.currentTab === 'rutinas') {
+                renderCalendarioView(container);
+            } else if (state.currentTab === 'finanzas') {
+                renderFinanzas(container);
+            }
+        }
+
+        // 5. MÓDULO 1: DASHBOARD
+        function renderDashboard(target) {
+            const total = state.chickens.length;
+            const sanas = state.chickens.filter(c => c.estado === 'Sana').length;
+            const enfermas = state.chickens.filter(c => c.estado === 'Enferma').length;
+            const cuarentena = state.chickens.filter(c => c.estado === 'En Cuarentena').length;
+            const tratamiento = state.chickens.filter(c => c.estado === 'En Tratamiento').length;
+
+            const selectedMonth = state.currentMonth;
+            const selectedYear = state.currentYear;
+            const mesNombre = getMonthName(selectedMonth);
+            const taskSummary = getMonthTaskProgress(selectedYear, selectedMonth);
+
+            // Cargar finanzas y recolecta de huevos
+            const finObject = getMonthlyFinance(selectedYear, selectedMonth);
+            const totals = calculateFinanceTotals(finObject);
+            const huevosDelMes = getEggsCollectedInMonth(selectedYear, selectedMonth);
+
+            // Alerta del día 30+
+            const today = new Date();
+            const esDiaTreinta = today.getDate() >= 30;
+            const esMesActual = today.getMonth() === selectedMonth && today.getFullYear() === selectedYear;
+
+            target.innerHTML = `
+                <div id="dashboard-print-area" class="space-y-6">
+
+                    <!-- ALERTA INTELIGENTE DÍA 30 -->
+                    ${esDiaTreinta && esMesActual ? `
+                        <div class="alert-print-banner bg-amber-500 text-stone-900 px-5 py-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 border border-amber-400 shadow-md">
+                            <div class="flex items-start gap-3">
+                                <div class="p-2 bg-amber-600/30 rounded-xl mt-0.5"><i data-lucide="alert-triangle" class="w-5 h-5 text-stone-900"></i></div>
+                                <div>
+                                    <h4 class="font-black text-sm uppercase tracking-wide">¡Recordatorio de Cierre de Mes (Día 30+)!</h4>
+                                    <p class="text-xs text-stone-800 font-medium mt-0.5">Se recomienda imprimir el Dashboard para guardar la información antes de reiniciar las tareas de este mes.</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="imprimirReporte()" class="px-4 py-2 bg-stone-900 hover:bg-black text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                                    <i data-lucide="printer" class="w-4 h-4"></i> Imprimir Reporte
+                                </button>
+                                <button onclick="triggerMonthlyReset()" class="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-900 rounded-xl text-xs font-bold transition">
+                                    Reiniciar Mes
+                                </button>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <!-- Cabecera de vista con selectores de Mes y Año -->
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-stone-200/80 pb-5">
+                        <div>
+                            <span class="text-xs font-bold text-brand-700 uppercase tracking-widest">Resumen General</span>
+                            <h2 class="text-2xl md:text-3xl font-extrabold text-stone-900 tracking-tight">Gallinero Sand</h2>
+                            <p class="text-sm text-stone-500 mt-1">Control de operaciones y balance financiero por períodos.</p>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2 no-print">
+                            <label class="text-xs font-bold text-stone-400 uppercase tracking-wider font-semibold">Ver Período:</label>
+                            <select onchange="selectDashboardMonth(this.value)" class="bg-white border border-stone-200 rounded-xl px-3 py-2 text-sm font-bold text-stone-700 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm">
+                                ${MONTHS.map((m, idx) => `<option value="${idx}" ${idx === selectedMonth ? 'selected' : ''}>${m}</option>`).join('')}
+                            </select>
+                            <select onchange="selectDashboardYear(this.value)" class="bg-white border border-stone-200 rounded-xl px-3 py-2 text-sm font-bold text-stone-700 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm">
+                                ${[2025, 2026, 2027, 2028].map(y => `<option value="${y}" ${y === selectedYear ? 'selected' : ''}>${y}</option>`).join('')}
+                            </select>
+                            <button onclick="imprimirReporte()" class="bg-brand-700 hover:bg-brand-800 text-white font-bold py-2 px-3.5 rounded-xl transition shadow-lg shadow-brand-900/10 text-sm flex items-center gap-1.5 h-10">
+                                <i data-lucide="printer" class="w-4 h-4"></i>
+                                Imprimir
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Cuadrícula de Métricas de Población y Producción -->
+                    <div class="grid grid-cols-2 lg:grid-cols-6 gap-4 print-report-grid">
+                        <div class="bg-white border border-stone-200/80 p-5 rounded-2xl shadow-sm hover:shadow transition print-card">
+                            <div class="flex items-center justify-between text-stone-400">
+                                <span class="text-xs font-bold uppercase tracking-wider">Total Aves</span>
+                                <div class="p-2 bg-stone-100 rounded-lg text-stone-600"><i data-lucide="feather" class="w-4 h-4"></i></div>
+                            </div>
+                            <p class="text-3xl font-extrabold text-stone-900 mt-3">${total}</p>
+                            <p class="text-xs text-stone-500 mt-1">Población total</p>
+                        </div>
+
+                        <div class="bg-white border border-stone-200/80 p-5 rounded-2xl shadow-sm hover:shadow transition print-card">
+                            <div class="flex items-center justify-between text-green-500">
+                                <span class="text-xs font-bold uppercase tracking-wider text-stone-400">Sanas</span>
+                                <div class="p-2 bg-green-50 rounded-lg"><i data-lucide="smile" class="w-4 h-4"></i></div>
+                            </div>
+                            <p class="text-3xl font-extrabold text-green-700 mt-3">${sanas}</p>
+                            <p class="text-xs text-green-600 mt-1 font-semibold">${total > 0 ? Math.round((sanas/total)*100) : 0}% del total</p>
+                        </div>
+
+                        <div class="bg-white border border-stone-200/80 p-5 rounded-2xl shadow-sm hover:shadow transition print-card">
+                            <div class="flex items-center justify-between text-red-500">
+                                <span class="text-xs font-bold uppercase tracking-wider text-stone-400">Enfermas</span>
+                                <div class="p-2 bg-red-50 rounded-lg"><i data-lucide="frown" class="w-4 h-4"></i></div>
+                            </div>
+                            <p class="text-3xl font-extrabold text-red-700 mt-3">${enfermas}</p>
+                            <p class="text-xs text-red-600 mt-1 font-semibold">Bajo monitoreo</p>
+                        </div>
+
+                        <div class="bg-white border border-stone-200/80 p-5 rounded-2xl shadow-sm hover:shadow transition print-card">
+                            <div class="flex items-center justify-between text-amber-500">
+                                <span class="text-xs font-bold uppercase tracking-wider text-stone-400">Aisladas</span>
+                                <div class="p-2 bg-amber-50 rounded-lg"><i data-lucide="shield-alert" class="w-4 h-4"></i></div>
+                            </div>
+                            <p class="text-3xl font-extrabold text-amber-700 mt-3">${cuarentena}</p>
+                            <p class="text-xs text-amber-600 mt-1 font-semibold">En cuarentena</p>
+                        </div>
+
+                        <div class="bg-white border border-stone-200/80 p-5 rounded-2xl shadow-sm hover:shadow transition print-card">
+                            <div class="flex items-center justify-between text-blue-500">
+                                <span class="text-xs font-bold uppercase tracking-wider text-stone-400">Tratamiento</span>
+                                <div class="p-2 bg-blue-50 rounded-lg"><i data-lucide="activity" class="w-4 h-4"></i></div>
+                            </div>
+                            <p class="text-3xl font-extrabold text-blue-700 mt-3">${tratamiento}</p>
+                            <p class="text-xs text-blue-600 mt-1 font-semibold">Con medicamento</p>
+                        </div>
+
+                        <div class="bg-white border border-stone-200/80 p-5 rounded-2xl shadow-sm hover:shadow transition print-card">
+                            <div class="flex items-center justify-between text-amber-600">
+                                <span class="text-xs font-bold uppercase tracking-wider text-stone-400">Huevos (${mesNombre})</span>
+                                <div class="p-2 bg-amber-50 rounded-lg"><i data-lucide="egg" class="w-4 h-4"></i></div>
+                            </div>
+                            <p class="text-3xl font-extrabold text-amber-700 mt-3">${huevosDelMes}</p>
+                            <p class="text-xs text-amber-600 mt-1 font-semibold">Recogidos este mes</p>
+                        </div>
+                    </div>
+
+                    <!-- BALANCE FINANCIERO MENSUAL EN DASHBOARD -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-white border border-stone-200/80 p-5 rounded-2xl shadow-sm print-card">
+                            <div class="flex items-center justify-between text-emerald-600">
+                                <span class="text-xs font-bold uppercase tracking-wider text-stone-500">Ingresos Totales (${mesNombre})</span>
+                                <div class="p-2 bg-emerald-50 rounded-lg"><i data-lucide="trending-up" class="w-4 h-4"></i></div>
+                            </div>
+                            <p class="text-3xl font-extrabold text-emerald-800 mt-3">$${totals.ingresos.toLocaleString()}</p>
+                            <p class="text-xs text-stone-500 mt-1">Entradas financieras</p>
+                        </div>
+
+                        <div class="bg-white border border-stone-200/80 p-5 rounded-2xl shadow-sm print-card">
+                            <div class="flex items-center justify-between text-red-600">
+                                <span class="text-xs font-bold uppercase tracking-wider text-stone-500">Gastos Totales (${mesNombre})</span>
+                                <div class="p-2 bg-red-50 rounded-lg"><i data-lucide="trending-down" class="w-4 h-4"></i></div>
+                            </div>
+                            <p class="text-3xl font-extrabold text-red-800 mt-3">$${totals.gastos.toLocaleString()}</p>
+                            <p class="text-xs text-stone-500 mt-1">Costos de operación</p>
+                        </div>
+
+                        <div class="${totals.ganancia >= 0 ? 'bg-emerald-950 text-emerald-50' : 'bg-red-950 text-red-50'} p-5 rounded-2xl shadow-md transition print-card">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold uppercase tracking-wider opacity-80">Ganancia Neta (${mesNombre})</span>
+                                <div class="p-2 ${totals.ganancia >= 0 ? 'bg-emerald-800/30' : 'bg-red-800/30'} rounded-lg">
+                                    <i data-lucide="wallet" class="w-4 h-4"></i>
+                                </div>
+                            </div>
+                            <p class="text-3xl font-black mt-3">$${totals.ganancia.toLocaleString()}</p>
+                            <p class="text-xs opacity-90 mt-1 font-semibold">
+                                ${totals.ganancia >= 0 ? '✅ Rendimiento Positivo' : '⚠️ Balance Negativo (Pérdida)'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Progreso de Tareas Mensuales y Recomendación -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-white border border-stone-200/80 p-6 rounded-2xl shadow-sm flex flex-col justify-between print-card">
+                            <div>
+                                <h3 class="text-lg font-bold text-stone-900 flex items-center gap-2">
+                                    <i data-lucide="check-square" class="w-5 h-5 text-brand-600"></i>
+                                    Avance de Rutinas de ${mesNombre} ${selectedYear}
+                                </h3>
+                                <p class="text-sm text-stone-500 mt-1">Medición de tareas completadas en este periodo.</p>
+                            </div>
+
+                            <div class="my-6">
+                                <div class="flex items-end justify-between mb-2">
+                                    <div>
+                                        <span class="text-4xl font-extrabold text-stone-900">${taskSummary.completed}</span>
+                                        <span class="text-stone-400 text-lg font-bold">/ ${taskSummary.total}</span>
+                                    </div>
+                                    <span class="text-sm font-bold text-brand-700 bg-brand-50 px-3 py-1 rounded-full">${taskSummary.percentage}% Realizado</span>
+                                </div>
+                                <div class="w-full bg-stone-100 rounded-full h-3 overflow-hidden">
+                                    <div class="bg-brand-600 h-3 rounded-full transition-all duration-500" style="width: ${taskSummary.percentage}%"></div>
+                                </div>
+                            </div>
+
+                            <div class="border-t border-stone-100 pt-4 flex flex-col sm:flex-row justify-between text-xs text-stone-500 gap-2">
+                                <span class="flex items-center gap-1.5 font-medium"><i data-lucide="alert-circle" class="w-4 h-4 text-red-500"></i> Días Incompletos del Mes: <strong class="text-red-700 font-bold">${taskSummary.incompleteDays}</strong></span>
+                                <span class="text-stone-400">Última actualización: Hoy</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-brand-900 text-stone-100 p-6 rounded-2xl shadow-lg flex flex-col justify-between relative overflow-hidden print-card print:text-black print:bg-white print:border print:border-stone-200">
+                            <div class="absolute -right-10 -bottom-10 opacity-10 text-white pointer-events-none no-print">
+                                <i data-lucide="egg" class="w-40 h-40"></i>
+                            </div>
+
+                            <div class="relative z-10">
+                                <span class="text-[10px] font-bold tracking-wider uppercase bg-brand-800 text-brand-200 px-2.5 py-1 rounded-full no-print">Análisis Financiero Sand</span>
+                                <h3 class="text-lg font-bold text-white mt-3 print:text-black">Diagnóstico de Rendimiento</h3>
+                                <p class="text-sm text-stone-300 mt-2 leading-relaxed print:text-stone-700">
+                                    ${
+                                        totals.ganancia < 0 
+                                        ? `El mes de ${mesNombre} registra pérdidas por <strong>$${Math.abs(totals.ganancia).toLocaleString()}</strong>. Considera reducir costos de mantenimiento o evaluar el volumen de venta de huevos.` 
+                                        : `¡Felicidades! Se registran ganancias netas de <strong>$${totals.ganancia.toLocaleString()}</strong>. El rendimiento del corral de Gallinero Sand es económicamente viable.`
+                                    }
+                                </p>
+                            </div>
+
+                            <div class="pt-6 relative z-10 no-print">
+                                <button onclick="navigate('finanzas')" class="w-full text-center bg-white text-brand-900 font-bold py-2.5 px-4 rounded-xl hover:bg-brand-50 transition text-sm flex items-center justify-center gap-2 shadow">
+                                    Modificar Finanzas del Mes
+                                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectDashboardMonth(val) {
+            state.currentMonth = parseInt(val);
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function selectDashboardYear(val) {
+            state.currentYear = parseInt(val);
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function triggerMonthlyReset() {
+            const mesNombre = getMonthName(state.currentMonth);
+            showCustomModal({
+                title: "Reiniciar Valores del Mes",
+                text: `¿Estás seguro de que deseas vaciar las tareas, registro de huevos y cuentas financieras de ${mesNombre} de ${state.currentYear}? Tus gallinas ingresadas permanecerán intactas. Esta acción es irreversible y se asume que ya has impreso o guardado tu reporte.`,
+                showCancel: true,
+                onConfirm: () => {
+                    const prefix = `${state.currentYear}-${String(state.currentMonth + 1).padStart(2, '0')}`;
+                    
+                    // Borrar tareas y huevos del mes
+                    for (const key in state.calendarTasks) {
+                        if (key.startsWith(prefix)) {
+                            delete state.calendarTasks[key];
+                        }
+                    }
+
+                    // Borrar finanzas de ese mes
+                    delete state.finances[prefix];
+
+                    saveState();
+                    showToast("¡Los valores del mes han sido reiniciados exitosamente!");
+                    renderCurrentTab();
+                    lucide.createIcons();
+                }
+            });
+        }
+
+        // 6. MÓDULO 2: POBLACIÓN (REGISTRO Y ENUMERACIÓN)
+        let chickenFilter = 'Todas';
+        let chickenSearch = '';
+
+        function renderPoblacion(target) {
+            let filtered = state.chickens.filter(c => {
+                const matchFilter = chickenFilter === 'Todas' || c.estado === chickenFilter;
+                const matchSearch = c.nombre.toLowerCase().includes(chickenSearch.toLowerCase());
+                return matchFilter && matchSearch;
+            });
+
+            target.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Cabecera -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-200/80 pb-5 no-print">
+                        <div>
+                            <span class="text-xs font-bold text-brand-700 uppercase tracking-widest">Población</span>
+                            <h2 class="text-2xl md:text-3xl font-extrabold text-stone-900 tracking-tight">Registro de Aves</h2>
+                            <p class="text-sm text-stone-500 mt-1">Registra nuevas aves, monitorea su edad y analiza su línea de ciclo productivo.</p>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="imprimirRegistroPoblacion()" class="inline-flex items-center gap-2 border border-stone-200 hover:bg-stone-50 text-stone-700 font-bold py-2.5 px-4 rounded-xl transition text-sm bg-white shadow-sm">
+                                <i data-lucide="printer" class="w-4 h-4"></i>
+                                Imprimir Registro
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Controles de Filtrado y Búsqueda -->
+                    <div class="flex flex-col sm:flex-row gap-4 items-center justify-between no-print bg-white p-4 border border-stone-200/80 rounded-2xl shadow-sm">
+                        <!-- Buscador -->
+                        <div class="relative w-full sm:max-w-xs">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-stone-400 pointer-events-none">
+                                <i data-lucide="search" class="w-4 h-4"></i>
+                            </span>
+                            <input oninput="searchChicken(this.value)" value="${chickenSearch}" type="text" placeholder="Buscar por nombre..." class="w-full pl-9 pr-4 py-2 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        </div>
+                        <!-- Filtro Estado -->
+                        <div class="flex flex-wrap gap-1.5 w-full sm:w-auto">
+                            ${['Todas', 'Sana', 'Enferma', 'En Cuarentena', 'En Tratamiento'].map(filterOption => {
+                                const isActive = chickenFilter === filterOption;
+                                return `
+                                    <button onclick="setChickenFilter('${filterOption}')" class="px-3.5 py-1.5 text-xs font-bold rounded-lg transition ${
+                                        isActive 
+                                        ? 'bg-brand-700 text-white shadow-sm' 
+                                        : 'bg-stone-50 text-stone-600 hover:bg-stone-100'
+                                    }">${filterOption}</button>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    <!-- CONTENEDOR DE TABLA DE POBLACIÓN (Con "N°") -->
+                    <div id="poblacion-print-area" class="bg-white border border-stone-200/80 rounded-2xl shadow-sm overflow-hidden">
+                        <div class="p-6 border-b border-stone-100 hidden print:block">
+                            <h2 class="text-xl font-bold text-brand-900 font-black">Registro de Población de Aves - Gallinero Sand</h2>
+                            <p class="text-xs text-stone-500 mt-1">Reporte general generado el ${new Date().toLocaleDateString()}</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse min-w-[700px] table-auto">
+                                <thead class="bg-stone-50 text-stone-500 uppercase text-[10px] font-bold tracking-wider border-b border-stone-200/80">
+                                    <tr>
+                                        <th class="px-6 py-4 text-center w-16">N°</th>
+                                        <th class="px-6 py-4">Nombre/ID</th>
+                                        <th class="px-6 py-4">Nacimiento</th>
+                                        <th class="px-6 py-4">Edad Calculada</th>
+                                        <th class="px-6 py-4">Estado</th>
+                                        <th class="px-6 py-4">Línea de Vida / Productividad</th>
+                                        <th class="px-6 py-4 text-right no-print">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-stone-100">
+                                    ${filtered.length === 0 ? `
+                                        <tr>
+                                            <td colspan="7" class="px-6 py-12 text-center text-stone-400 font-medium">
+                                                No se encontraron gallinas que coincidan con la búsqueda.
+                                            </td>
+                                        </tr>
+                                    ` : filtered.map((chicken, idx) => {
+                                        const ageStr = calculateAge(chicken.nacimiento);
+                                        const ageMonths = getAgeInMonths(chicken.nacimiento);
+                                        const statusBadge = getStatusBadge(chicken.estado);
+                                        return `
+                                            <tr class="hover:bg-stone-50/50 transition duration-150">
+                                                <td class="px-6 py-4 text-center font-bold text-stone-400 text-sm">${idx + 1}</td>
+                                                <td class="px-6 py-4 font-bold text-stone-900">${chicken.nombre}</td>
+                                                <td class="px-6 py-4 text-sm text-stone-500">${formatDateString(chicken.nacimiento)}</td>
+                                                <td class="px-6 py-4 text-sm font-semibold text-stone-700">${ageStr}</td>
+                                                <td class="px-6 py-4">${statusBadge}</td>
+                                                <td class="px-6 py-4 min-w-[200px] max-w-[320px]">
+                                                    ${renderVisualTimeline(ageMonths)}
+                                                </td>
+                                                <td class="px-6 py-4 text-right no-print">
+                                                    <div class="inline-flex gap-1">
+                                                        <button onclick="diagnoseChicken('${chicken.id}')" title="Diagnóstico Médico" class="p-2 text-brand-700 hover:bg-brand-50 rounded-lg transition duration-150">
+                                                            <i data-lucide="heart-pulse" class="w-4.5 h-4.5"></i>
+                                                        </button>
+                                                        <button onclick="editChicken('${chicken.id}')" title="Editar Registro" class="p-2 text-stone-600 hover:bg-stone-100 rounded-lg transition duration-150">
+                                                            <i data-lucide="edit-3" class="w-4.5 h-4.5"></i>
+                                                        </button>
+                                                        <button onclick="confirmDeleteChicken('${chicken.id}', '${chicken.nombre}')" title="Eliminar Registro" class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition duration-150">
+                                                            <i data-lucide="trash-2" class="w-4.5 h-4.5"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- FORMULARIO DE REGISTRO PERMANENTE -->
+                    <div class="bg-white border border-stone-200/80 p-6 rounded-2xl shadow-sm space-y-4 no-print mt-6">
+                        <div class="flex items-center gap-2 text-brand-800">
+                            <i data-lucide="plus-circle" class="w-5 h-5 text-brand-600"></i>
+                            <h3 class="text-lg font-bold text-stone-900">Registrar Nueva Gallina</h3>
+                        </div>
+                        <p class="text-xs text-stone-500">Agrega un nuevo espécimen al control del gallinero ingresando su nombre, fecha de nacimiento y estado actual.</p>
+                        <form id="new-chicken-form" onsubmit="addChicken(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                            <div>
+                                <label class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5" for="form-name">Nombre / ID</label>
+                                <input id="form-name" type="text" placeholder="Ej. Clotilde, Gallina #15" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5" for="form-birthdate">Fecha de Nacimiento</label>
+                                <input id="form-birthdate" type="date" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5" for="form-status">Estado de Salud</label>
+                                <select id="form-status" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                                    <option value="Sana">Sana</option>
+                                    <option value="Enferma">Enferma</option>
+                                    <option value="En Cuarentena">En Cuarentena</option>
+                                    <option value="En Tratamiento">En Tratamiento</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-3 flex justify-end gap-2 pt-2">
+                                <button type="submit" class="w-full md:w-auto px-6 py-2.5 bg-brand-700 hover:bg-brand-800 text-white font-bold rounded-xl shadow-md text-sm transition flex items-center justify-center gap-2">
+                                    <i data-lucide="save" class="w-4 h-4"></i> Guardar Registro
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+        }
+
+        function setChickenFilter(val) {
+            chickenFilter = val;
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function searchChicken(val) {
+            chickenSearch = val;
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function addChicken(e) {
+            e.preventDefault();
+            const name = document.getElementById('form-name').value;
+            const birthdate = document.getElementById('form-birthdate').value;
+            const status = document.getElementById('form-status').value;
+
+            if (new Date(birthdate) > new Date()) {
+                showToast("La fecha de nacimiento no puede ser del futuro.", "error");
+                return;
+            }
+
+            const newChicken = {
+                id: 'c_' + Date.now(),
+                nombre: name,
+                nacimiento: birthdate,
+                estado: status
+            };
+
+            state.chickens.push(newChicken);
+            saveState();
+            showToast(`¡${name} registrada exitosamente!`);
+            
+            document.getElementById('new-chicken-form').reset();
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function confirmDeleteChicken(id, name) {
+            showCustomModal({
+                title: "Eliminar Registro",
+                text: `¿Estás seguro de que deseas eliminar a la gallina ${name}? Esta acción es irreversible.`,
+                showCancel: true,
+                onConfirm: () => {
+                    state.chickens = state.chickens.filter(c => c.id !== id);
+                    saveState();
+                    showToast(`Se ha eliminado a ${name}`);
+                    renderCurrentTab();
+                    lucide.createIcons();
+                }
+            });
+        }
+
+        function editChicken(id) {
+            const chicken = state.chickens.find(c => c.id === id);
+            if (!chicken) return;
+
+            showCustomModal({
+                title: `Editar a ${chicken.nombre}`,
+                text: "Escribe el nuevo nombre de la gallina a continuación. (El cambio de estado debe hacerse vía diagnóstico o edición directa):",
+                showCancel: true,
+                onConfirm: () => {
+                    const newName = prompt("Nuevo nombre de la gallina:", chicken.nombre);
+                    if (newName && newName.trim() !== "") {
+                        chicken.nombre = newName.trim();
+                        saveState();
+                        showToast("Información actualizada.");
+                        renderCurrentTab();
+                        lucide.createIcons();
+                    }
+                }
+            });
+        }
+
+        function diagnoseChicken(id) {
+            state.drPollo.selectedChickenId = id;
+            state.drPollo.currentQuestionIndex = 0;
+            state.drPollo.answers = [];
+            navigate('drpollo');
+        }
+
+        // CÁLCULOS DINÁMICOS DE EDAD
+        function calculateAge(birthdateStr) {
+            const birth = new Date(birthdateStr);
+            const now = new Date();
+            let diffMs = now - birth;
+            if (isNaN(diffMs) || diffMs < 0) return 'Invalida';
+
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            const diffWeeks = Math.floor(diffDays / 7);
+            const diffMonths = Math.floor(diffDays / 30.43);
+
+            if (diffMonths >= 1) {
+                const remainingWeeks = Math.floor((diffDays % 30.43) / 7);
+                let text = `${diffMonths} ${diffMonths === 1 ? 'mes' : 'meses'}`;
+                if (remainingWeeks > 0) {
+                    text += ` y ${remainingWeeks} ${remainingWeeks === 1 ? 'sem' : 'sems'}`;
+                }
+                return text;
+            } else {
+                return `${diffWeeks} ${diffWeeks === 1 ? 'semana' : 'semanas'}`;
+            }
+        }
+
+        function getAgeInMonths(birthdateStr) {
+            const birth = new Date(birthdateStr);
+            const now = new Date();
+            let diffMs = now - birth;
+            if (isNaN(diffMs) || diffMs < 0) return 0;
+            return diffMs / (1000 * 60 * 60 * 24 * 30.43);
+        }
+
+        // GENERADOR DE LÍNEA DE TIEMPO VISUAL
+        function renderVisualTimeline(ageMonths) {
+            const maxRange = 72;
+            const percent = Math.min(100, (ageMonths / maxRange) * 100);
+
+            let markerColor = "bg-amber-500";
+            if (ageMonths >= 5 && ageMonths < 36) {
+                markerColor = "bg-brand-600";
+            } else if (ageMonths >= 36) {
+                markerColor = "bg-stone-400";
+            }
+
+            return `
+                <div class="space-y-1.5 w-full">
+                    <div class="relative w-full h-3.5 bg-stone-100 rounded-full border border-stone-200 overflow-hidden flex">
+                        <!-- Crecimiento (0-5 meses) -->
+                        <div class="h-full bg-amber-100 border-r border-amber-200" style="width: 7%"></div>
+                        <!-- Edad Productiva (5-36 meses) -->
+                        <div class="h-full bg-emerald-100 border-r border-emerald-200" style="width: 43%"></div>
+                        <!-- Retiro / Vejez (36-72 meses) -->
+                        <div class="h-full bg-stone-200" style="width: 50%"></div>
+
+                        <!-- Indicador de la gallina -->
+                        <div class="absolute h-full w-2.5 ${markerColor} top-0 rounded-full shadow border border-white" style="left: calc(${percent}% - 5px)" title="Edad actual: ${Math.round(ageMonths)} meses"></div>
+                    </div>
+                    <div class="flex justify-between text-[9px] text-stone-400 font-bold px-0.5">
+                        <span class="text-amber-600">Crecer (0-5m)</span>
+                        <span class="text-emerald-700">Puesta (5-36m)</span>
+                        <span class="text-stone-500">Retiro (36m+)</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getStatusBadge(estado) {
+            switch(estado) {
+                case 'Sana':
+                    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-50 text-green-700 border border-green-200"><span class="w-1.5 h-1.5 rounded-full bg-green-500"></span>Sana</span>`;
+                case 'Enferma':
+                    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-50 text-red-700 border border-red-200"><span class="w-1.5 h-1.5 rounded-full bg-red-500"></span>Enferma</span>`;
+                case 'En Cuarentena':
+                    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Cuarentena</span>`;
+                case 'En Tratamiento':
+                    return `<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>Tratamiento</span>`;
+                default:
+                    return '';
+            }
+        }
+
+        // 7. MÓDULO 3: DOCTOR POLLO
+        function renderDoctorPollo(target) {
+            const hasChickens = state.chickens.length > 0;
+            const currentChicken = state.chickens.find(c => c.id === state.drPollo.selectedChickenId);
+
+            target.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Cabecera -->
+                    <div class="border-b border-stone-200/80 pb-5">
+                        <span class="text-xs font-bold text-brand-700 uppercase tracking-widest">Asistente Clínico</span>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-stone-900 tracking-tight">Doctor Pollo</h2>
+                        <p class="text-sm text-stone-500 mt-1">Diagnóstico experto inmediato basado en síntomas físicos observables en tus aves.</p>
+                    </div>
+
+                    ${!hasChickens ? `
+                        <div class="bg-white border border-stone-200 p-8 rounded-2xl text-center">
+                            <i data-lucide="feather" class="w-12 h-12 text-stone-300 mx-auto mb-4"></i>
+                            <h3 class="text-lg font-bold text-stone-800">No hay gallinas registradas</h3>
+                            <p class="text-sm text-stone-500 mt-1 max-w-md mx-auto">Primero debes registrar al menos un ave en el módulo de población para iniciar un diagnóstico experto de salud.</p>
+                            <button onclick="navigate('poblacion')" class="mt-4 bg-brand-700 hover:bg-brand-800 text-white font-bold py-2.5 px-4 rounded-xl transition text-sm">Registrar Ave Ahora</button>
+                        </div>
+                    ` : `
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <!-- Selector y Panel Lateral -->
+                            <div class="bg-white border border-stone-200/80 p-6 rounded-2xl shadow-sm space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5 font-semibold">Seleccionar Ave para Diagnóstico</label>
+                                    <select onchange="selectChickenForDiagnosis(this.value)" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                                        <option value="">-- Seleccionar Ave --</option>
+                                        ${state.chickens.map(c => `
+                                            <option value="${c.id}" ${c.id === state.drPollo.selectedChickenId ? 'selected' : ''}>${c.nombre} (${c.estado})</option>
+                                        `).join('')}
+                                    </select>
+                                </div>
+
+                                ${currentChicken ? `
+                                    <div class="border-t border-stone-100 pt-4 space-y-2">
+                                        <h4 class="text-xs font-bold text-stone-400 uppercase tracking-wider">Estado Clínico Inicial</h4>
+                                        <div class="bg-stone-50 p-4 rounded-xl border border-stone-100">
+                                            <p class="text-sm font-bold text-stone-800">${currentChicken.nombre}</p>
+                                            <p class="text-xs text-stone-500 mt-0.5">Edad: ${calculateAge(currentChicken.nacimiento)}</p>
+                                            <div class="mt-2.5">${getStatusBadge(currentChicken.estado)}</div>
+                                        </div>
+                                    </div>
+                                ` : ''}
+                            </div>
+
+                            <!-- Panel de Cuestionario Activo / Resultados -->
+                            <div class="lg:col-span-2 bg-white border border-stone-200/80 p-6 rounded-2xl shadow-sm min-h-[300px] flex flex-col justify-between">
+                                ${!state.drPollo.selectedChickenId ? `
+                                    <div class="flex-1 flex flex-col items-center justify-center text-center p-8">
+                                        <div class="p-4 bg-brand-50 text-brand-600 rounded-full mb-3"><i data-lucide="heart-pulse" class="w-8 h-8"></i></div>
+                                        <h3 class="text-base font-bold text-stone-800">Asistente Listo</h3>
+                                        <p class="text-xs text-stone-500 mt-1 max-w-sm">Selecciona una de las gallinas de la lista de la izquierda para comenzar el cuestionario interactivo de 15 preguntas diagnósticas.</p>
+                                    </div>
+                                ` : state.drPollo.currentQuestionIndex < QUESTIONS.length ? `
+                                    <!-- CUESTIONARIO ACTIVO -->
+                                    <div class="space-y-6">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-xs font-bold text-brand-700 bg-brand-50 px-3 py-1 rounded-full">Pregunta ${state.drPollo.currentQuestionIndex + 1} de 15</span>
+                                            <span class="text-xs text-stone-400 font-medium">Progreso: ${Math.round((state.drPollo.currentQuestionIndex / QUESTIONS.length)*100)}%</span>
+                                        </div>
+
+                                        <!-- Barra de Progreso -->
+                                        <div class="w-full bg-stone-100 rounded-full h-1.5">
+                                            <div class="bg-brand-600 h-1.5 rounded-full transition-all duration-300" style="width: ${(state.drPollo.currentQuestionIndex / QUESTIONS.length)*100}%"></div>
+                                        </div>
+
+                                        <!-- Pregunta -->
+                                        <div class="py-4">
+                                            <p class="text-lg md:text-xl font-bold text-stone-800 tracking-tight leading-relaxed">
+                                                ${QUESTIONS[state.drPollo.currentQuestionIndex].text}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Botones de Navegación -->
+                                    <div class="flex items-center justify-between border-t border-stone-100 pt-6 mt-6">
+                                        <button onclick="prevQuestion()" ${state.drPollo.currentQuestionIndex === 0 ? 'disabled' : ''} class="px-4 py-2 border border-stone-200 rounded-xl text-stone-600 hover:bg-stone-50 font-bold text-xs flex items-center gap-1 disabled:opacity-30 disabled:pointer-events-none">
+                                            <i data-lucide="arrow-left" class="w-4 h-4"></i> Anterior
+                                        </button>
+                                        <div class="flex gap-3">
+                                            <button onclick="answerQuestion(false)" class="px-6 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl font-bold text-sm transition">
+                                                No presenta
+                                            </button>
+                                            <button onclick="answerQuestion(true)" class="px-7 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-sm transition flex items-center gap-1.5 shadow-md shadow-red-900/10">
+                                                Sí, presenta <i data-lucide="check" class="w-4.5 h-4.5"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                ` : `
+                                    <!-- REPORTES DE DIAGNÓSTICOS CONCLUIDO -->
+                                    ${renderDiagnosisResult()}
+                                `}
+                            </div>
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        // 8. MÓDULO 4: CALENDARIO DE RUTINAS
+        function renderCalendarioView(target) {
+            const year = state.currentYear;
+            const month = state.currentMonth;
+            const monthName = MONTHS[month];
+            
+            const firstDayIndex = new Date(year, month, 1).getDay();
+            const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+
+            const selectedDateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(state.selectedDay).padStart(2, '0')}`;
+            const dailyTasksList = getTasksForDate(year, month, state.selectedDay);
+            const savedProgress = state.calendarTasks[selectedDateKey] || {};
+
+            target.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Cabecera -->
+                    <div class="border-b border-stone-200/80 pb-5">
+                        <span class="text-xs font-bold text-brand-700 uppercase tracking-widest">Cronograma de Cuidados</span>
+                        <h2 class="text-2xl md:text-3xl font-extrabold text-stone-900 tracking-tight">Calendario de Rutinas</h2>
+                        <p class="text-sm text-stone-500 mt-1">Control de tareas obligatorias e higiene del gallinero.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- El Calendario Interactivo -->
+                        <div class="lg:col-span-2 bg-white border border-stone-200/80 p-6 rounded-2xl shadow-sm space-y-4">
+                            <!-- Selectores de Mes / Año -->
+                            <div class="flex items-center justify-between gap-4">
+                                <h3 class="text-lg font-extrabold text-stone-900 tracking-tight">${monthName} de ${year}</h3>
+                                <div class="flex items-center gap-1.5 no-print">
+                                    <button onclick="changeMonth(-1)" class="p-2 border border-stone-200 hover:bg-stone-50 rounded-xl transition text-stone-600">
+                                        <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                                    </button>
+                                    <select onchange="selectMonth(this.value)" class="bg-stone-50 border border-stone-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-stone-700 focus:outline-none">
+                                        ${MONTHS.map((m, idx) => `<option value="${idx}" ${idx === month ? 'selected' : ''}>${m}</option>`).join('')}
+                                    </select>
+                                    <select onchange="selectYear(this.value)" class="bg-stone-50 border border-stone-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-stone-700 focus:outline-none">
+                                        ${[2025, 2026, 2027, 2028].map(y => `<option value="${y}" ${y === year ? 'selected' : ''}>${y}</option>`).join('')}
+                                    </select>
+                                    <button onclick="changeMonth(1)" class="p-2 border border-stone-200 hover:bg-stone-50 rounded-xl transition text-stone-600">
+                                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Leyenda Informativa de Rutinas y Frecuencias -->
+                            <div class="flex flex-col gap-2 bg-stone-50 p-4 rounded-xl border border-stone-100/50">
+                                <div class="flex flex-wrap gap-4 text-xs font-medium text-stone-500">
+                                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-red-100 border border-red-300 rounded-md"></span> Tareas Incompletas</span>
+                                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-green-100 border border-green-300 rounded-md"></span> Tareas Completadas</span>
+                                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-white border border-stone-200 rounded-md"></span> Días Futuros</span>
+                                </div>
+                                <div class="border-t border-stone-200/50 my-1"></div>
+                                <div class="flex flex-wrap gap-3 text-[10px] font-bold uppercase tracking-wider">
+                                    <span class="flex items-center gap-1.5 text-stone-600"><span class="w-2.5 h-2.5 bg-stone-100 border border-stone-300 rounded"></span> Diarias</span>
+                                    <span class="flex items-center gap-1.5 text-orange-700"><span class="w-2.5 h-2.5 bg-orange-100 border border-orange-300 rounded"></span> Semanales (Lunes)</span>
+                                    <span class="flex items-center gap-1.5 text-red-700"><span class="w-2.5 h-2.5 bg-red-100 border border-red-300 rounded"></span> Quincenales (Cada 2 Lunes)</span>
+                                    <span class="flex items-center gap-1.5 text-purple-700"><span class="w-2.5 h-2.5 bg-purple-100 border border-purple-300 rounded"></span> Mensuales (Último Lunes)</span>
+                                </div>
+                            </div>
+
+                            <!-- Cuadrícula del Calendario -->
+                            <div class="grid grid-cols-7 gap-2.5 pt-2">
+                                <!-- Cabecera Días -->
+                                ${['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(d => `
+                                    <div class="text-center text-[10px] font-extrabold text-stone-400 uppercase tracking-wider py-1">${d}</div>
+                                `).join('')}
+
+                                <!-- Días Vacíos iniciales -->
+                                ${Array(firstDayIndex).fill(0).map(() => `<div class="bg-stone-50/50 rounded-xl h-14 md:h-18 border border-stone-100/30"></div>`).join('')}
+
+                                <!-- Días del Mes -->
+                                ${Array(totalDaysInMonth).fill(0).map((_, idx) => {
+                                    const dayNum = idx + 1;
+                                    const isComplete = isDayComplete(year, month, dayNum);
+                                    
+                                    const today = new Date();
+                                    const checkDate = new Date(year, month, dayNum);
+                                    const isPastOrToday = checkDate <= new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+                                    let bgStyle = "bg-white border-stone-200/80 hover:border-brand-500 text-stone-700";
+                                    if (isPastOrToday) {
+                                        bgStyle = isComplete 
+                                            ? "bg-green-50/70 border-green-200 text-green-800 hover:bg-green-100/50" 
+                                            : "bg-red-50/80 border-red-200 text-red-800 hover:bg-red-100/50";
+                                    }
+
+                                    const isSelected = state.selectedDay === dayNum;
+                                    const selectedRing = isSelected ? "ring-2 ring-brand-700 ring-offset-1" : "";
+
+                                    return `
+                                        <button onclick="selectCalendarDay(${dayNum})" class="relative rounded-xl h-14 md:h-18 border text-left p-2.5 transition flex flex-col justify-between ${bgStyle} ${selectedRing}">
+                                            <span class="text-xs font-bold leading-none">${dayNum}</span>
+                                            <div class="w-full flex justify-between items-center mt-1">
+                                                ${isPastOrToday 
+                                                    ? isComplete 
+                                                        ? `<i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-green-600"></i>` 
+                                                        : `<i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-red-600"></i>`
+                                                    : `<span class="w-1.5 h-1.5 rounded-full bg-stone-300"></span>`
+                                                }
+                                                <span class="text-[9px] font-bold text-stone-400 leading-none">
+                                                    ${getTasksForDate(year, month, dayNum).length} t.
+                                                </span>
+                                            </div>
+                                        </button>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Panel Derecho: Checklist de Tareas del Día Seleccionado -->
+                        <div class="bg-white border border-stone-200/80 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
+                            <div class="space-y-4">
+                                <div>
+                                    <span class="text-xs font-bold text-brand-700 uppercase tracking-widest">Panel de Control</span>
+                                    <h3 class="text-lg font-extrabold text-stone-900">Tareas del Día</h3>
+                                    <p class="text-xs text-stone-500 mt-0.5">${state.selectedDay} de ${monthName} de ${year}</p>
+                                </div>
+
+                                <!-- Registro de huevos colectados -->
+                                <div class="bg-amber-50/60 border border-amber-200 p-4 rounded-xl space-y-2">
+                                    <div class="flex items-center gap-1.5 text-amber-800">
+                                        <i data-lucide="egg" class="w-4 h-4"></i>
+                                        <label class="text-xs font-bold uppercase tracking-wide" for="eggs-collected-input">
+                                            Huevos Recogidos Hoy
+                                        </label>
+                                    </div>
+                                    <input id="eggs-collected-input" type="number" min="0" 
+                                        value="${savedProgress.eggsCollected !== undefined ? savedProgress.eggsCollected : ''}" 
+                                        oninput="saveEggsCollected('${selectedDateKey}', this.value)"
+                                        onblur="handleEggInputBlur()"
+                                        placeholder="Ingresa cantidad..." 
+                                        class="w-full px-3 py-2 bg-white border border-amber-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-bold text-stone-800">
+                                </div>
+
+                                <!-- Checklist de tareas (Con colores sugeridos por prioridad) -->
+                                <div class="space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
+                                    ${dailyTasksList.map(task => {
+                                        const isChecked = savedProgress[task.id] === true;
+                                        let catColor = "bg-stone-100 text-stone-600 border-stone-200";
+                                        if (task.category === 'Semanal') catColor = "bg-orange-50 text-orange-700 border-orange-100";
+                                        if (task.category === 'Quincenal') catColor = "bg-red-50 text-red-700 border-red-100";
+                                        if (task.category === 'Mensual') catColor = "bg-purple-50 text-purple-700 border-purple-100";
+
+                                        return `
+                                            <label class="flex items-start gap-3 p-3 rounded-xl hover:bg-stone-50 cursor-pointer border border-stone-100 transition">
+                                                <input type="checkbox" onchange="toggleTaskStatus('${selectedDateKey}', '${task.id}', this.checked)" ${isChecked ? 'checked' : ''} class="mt-1 rounded border-stone-300 text-brand-700 focus:ring-brand-500 w-4 h-4">
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-sm font-semibold text-stone-800 leading-snug ${isChecked ? 'line-through text-stone-400' : ''}">${task.text}</p>
+                                                    <span class="inline-block text-[9px] font-bold border px-1.5 py-0.5 rounded-md mt-1.5 ${catColor}">
+                                                        ${task.category}
+                                                    </span>
+                                                </div>
+                                            </label>
+                                        `;
+                                    }).join('')}
+                                </div>
+                            </div>
+
+                            <div class="pt-4 border-t border-stone-100 mt-4 space-y-2">
+                                <button onclick="markAllTasksComplete('${selectedDateKey}', true)" class="w-full bg-brand-700 hover:bg-brand-800 text-white font-bold py-2.5 rounded-xl transition text-xs flex items-center justify-center gap-1.5 shadow">
+                                    <i data-lucide="check-square" class="w-4.5 h-4.5"></i> Completar Todas las Tareas
+                                </button>
+                                <button onclick="markAllTasksComplete('${selectedDateKey}', false)" class="w-full border border-stone-200 hover:bg-stone-50 text-stone-600 font-bold py-2.5 rounded-xl transition text-xs">
+                                    Limpiar Todas las Selecciones
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectCalendarDay(day) {
+            state.selectedDay = day;
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function selectMonth(val) {
+            state.currentMonth = parseInt(val);
+            state.selectedDay = 1; 
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function selectYear(val) {
+            state.currentYear = parseInt(val);
+            state.selectedDay = 1;
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function changeMonth(dir) {
+            let m = state.currentMonth + dir;
+            let y = state.currentYear;
+            if (m < 0) {
+                m = 11;
+                y--;
+            } else if (m > 11) {
+                m = 0;
+                y++;
+            }
+            state.currentMonth = m;
+            state.currentYear = y;
+            state.selectedDay = 1;
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function toggleTaskStatus(dateKey, taskId, isChecked) {
+            if (!state.calendarTasks[dateKey]) {
+                state.calendarTasks[dateKey] = {};
+            }
+            state.calendarTasks[dateKey][taskId] = isChecked;
+            saveState();
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function markAllTasksComplete(dateKey, isComplete) {
+            const dailyTasksList = getTasksForDate(state.currentYear, state.currentMonth, state.selectedDay);
+            if (!state.calendarTasks[dateKey]) {
+                state.calendarTasks[dateKey] = {};
+            }
+            dailyTasksList.forEach(t => {
+                state.calendarTasks[dateKey][t.id] = isComplete;
+            });
+            saveState();
+            showToast(isComplete ? "¡Todas las tareas marcadas como realizadas!" : "Tareas limpiadas.");
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function saveEggsCollected(dateKey, val) {
+            if (!state.calendarTasks[dateKey]) {
+                state.calendarTasks[dateKey] = {};
+            }
+            const count = parseInt(val);
+            state.calendarTasks[dateKey].eggsCollected = isNaN(count) ? 0 : count;
+            
+            if (count > 0) {
+                state.calendarTasks[dateKey]['recolectar_huevos'] = true;
+            } else if (count === 0) {
+                state.calendarTasks[dateKey]['recolectar_huevos'] = false;
+            }
+            saveState();
+        }
+
+        function handleEggInputBlur() {
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function isDayComplete(year, month, day) {
+            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const requiredTasks = getTasksForDate(year, month, day);
+            const userProgress = state.calendarTasks[dateKey] || {};
+
+            return requiredTasks.every(task => userProgress[task.id] === true);
+        }
+
+        function getMonthTaskProgress(year, month) {
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const today = new Date();
+            const isCurrentMonth = today.getMonth() === month && today.getFullYear() === year;
+            
+            let totalTasksCount = 0;
+            let completedTasksCount = 0;
+            let incompleteDays = 0;
+
+            const limitDay = isCurrentMonth ? today.getDate() : daysInMonth;
+
+            for (let d = 1; d <= daysInMonth; d++) {
+                const tasks = getTasksForDate(year, month, d);
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const userProgress = state.calendarTasks[dateKey] || {};
+
+                const tasksForThisDay = tasks.length;
+                let doneForThisDay = 0;
+
+                tasks.forEach(t => {
+                    if (userProgress[t.id] === true) {
+                        completedTasksCount++;
+                        doneForThisDay++;
+                    }
+                });
+
+                totalTasksCount += tasksForThisDay;
+
+                if (d <= limitDay) {
+                    if (doneForThisDay < tasksForThisDay) {
+                        incompleteDays++;
+                    }
+                }
+            }
+
+            return {
+                total: totalTasksCount,
+                completed: completedTasksCount,
+                percentage: totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0,
+                incompleteDays: incompleteDays
+            };
+        }
+
+        // ASIGNADOR DE TAREAS POR DÍA DE LA SEMANA SEGÚN REGLAS ESTIPULADAS
+        function getTasksForDate(year, month, day) {
+            const dateObj = new Date(year, month, day);
+            const dayOfWeek = dateObj.getDay();
+
+            let tasks = [];
+            
+            // DIARIOS: Siempre se asignan a todos los días
+            tasks.push(ROUTINE_TASKS[0], ROUTINE_TASKS[1], ROUTINE_TASKS[2], ROUTINE_TASKS[3]);
+
+            if (dayOfWeek === 1) { // Si es lunes
+                // Buscamos todos los lunes del mes actual para aplicar las reglas específicas
+                const mondays = [];
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                for (let d = 1; d <= daysInMonth; d++) {
+                    if (new Date(year, month, d).getDay() === 1) {
+                        mondays.push(d);
+                    }
+                }
+
+                // SEMANALES: Cada Lunes
+                tasks.push(ROUTINE_TASKS[4], ROUTINE_TASKS[5], ROUTINE_TASKS[6], ROUTINE_TASKS[7]);
+
+                // QUINCENALES: Cada dos Lunes (1er lunes, 3er lunes, 5to lunes si existe)
+                const mondayIndex = mondays.indexOf(day);
+                if (mondayIndex !== -1 && mondayIndex % 2 === 0) {
+                    tasks.push(ROUTINE_TASKS[8], ROUTINE_TASKS[9], ROUTINE_TASKS[10], ROUTINE_TASKS[11]);
+                }
+
+                // MENSUALES: El último lunes del mes
+                if (mondays.length > 0 && day === mondays[mondays.length - 1]) {
+                    tasks.push(ROUTINE_TASKS[12], ROUTINE_TASKS[13], ROUTINE_TASKS[14], ROUTINE_TASKS[15]);
+                }
+            }
+
+            return tasks;
+        }
+
+        // 9. MÓDULO 5: FINANZAS
+        function renderFinanzas(target) {
+            const selectedMonth = state.currentMonth;
+            const selectedYear = state.currentYear;
+            const mesNombre = getMonthName(selectedMonth);
+
+            const finObject = getMonthlyFinance(selectedYear, selectedMonth);
+            const totals = calculateFinanceTotals(finObject);
+
+            target.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Cabecera de Finanzas -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-200/80 pb-5 no-print">
+                        <div>
+                            <span class="text-xs font-bold text-brand-700 uppercase tracking-widest">Control Contable</span>
+                            <h2 class="text-2xl md:text-3xl font-extrabold text-stone-900 tracking-tight">Finanzas - Gallinero Sand</h2>
+                            <p class="text-sm text-stone-500 mt-1">Registra detalladamente gastos e ingresos mensuales para obtener el balance neto.</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="text-xs font-bold text-stone-400 uppercase tracking-wider">Período Contable:</label>
+                            <select onchange="selectFinancesMonth(this.value)" class="bg-white border border-stone-200 rounded-xl px-3 py-2 text-sm font-bold text-stone-700 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm">
+                                ${MONTHS.map((m, idx) => `<option value="${idx}" ${idx === selectedMonth ? 'selected' : ''}>${m}</option>`).join('')}
+                            </select>
+                            <select onchange="selectFinancesYear(this.value)" class="bg-white border border-stone-200 rounded-xl px-3 py-2 text-sm font-bold text-stone-700 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm">
+                                ${[2025, 2026, 2027, 2028].map(y => `<option value="${y}" ${y === selectedYear ? 'selected' : ''}>${y}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Resumen de Totales e Indicadores -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 no-print">
+                        <div class="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl">
+                            <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Total Ingresos (${mesNombre})</span>
+                            <p class="text-2xl font-black text-emerald-950 mt-1" id="tot-ingresos-display">$${totals.ingresos.toLocaleString()}</p>
+                        </div>
+                        <div class="bg-red-50 border border-red-200 p-5 rounded-2xl">
+                            <span class="text-xs font-bold uppercase tracking-wider text-red-700">Total Gastos (${mesNombre})</span>
+                            <p class="text-2xl font-black text-red-950 mt-1" id="tot-gastos-display">$${totals.gastos.toLocaleString()}</p>
+                        </div>
+                        <div class="${totals.ganancia >= 0 ? 'bg-emerald-900 text-white' : 'bg-red-900 text-white'} p-5 rounded-2xl transition duration-150">
+                            <span class="text-xs font-bold uppercase tracking-wider opacity-80">Ganancia Neta (${mesNombre})</span>
+                            <p class="text-2xl font-black mt-1" id="tot-ganancia-display">$${totals.ganancia.toLocaleString()}</p>
+                        </div>
+                    </div>
+
+                    <!-- Formularios de Gastos e Ingresos -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- GASTOS -->
+                        <div class="bg-white border border-stone-200/80 p-6 rounded-2xl shadow-sm space-y-4">
+                            <div class="flex items-center gap-2 border-b border-stone-100 pb-3 text-red-700">
+                                <i data-lucide="trending-down" class="w-5 h-5"></i>
+                                <h3 class="text-lg font-bold text-stone-950">Gastos</h3>
+                            </div>
+                            
+                            <div class="space-y-3.5">
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5">• Alimento ($)</label>
+                                    <input type="number" min="0" value="${finObject.alimento || ''}" oninput="updateFinanceField('alimento', this.value)" placeholder="0" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5">• Cama y aserrín ($)</label>
+                                    <input type="number" min="0" value="${finObject.cama || ''}" oninput="updateFinanceField('cama', this.value)" placeholder="0" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5">• Agua y electricidad ($)</label>
+                                    <input type="number" min="0" value="${finObject.agua || ''}" oninput="updateFinanceField('agua', this.value)" placeholder="0" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5">• Medicamentos ($)</label>
+                                    <input type="number" min="0" value="${finObject.med || ''}" oninput="updateFinanceField('med', this.value)" placeholder="0" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5">• Mantenimiento ($)</label>
+                                    <input type="number" min="0" value="${finObject.mant || ''}" oninput="updateFinanceField('mant', this.value)" placeholder="0" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5">• Compra de gallinas nuevas ($)</label>
+                                    <input type="number" min="0" value="${finObject.compra || ''}" oninput="updateFinanceField('compra', this.value)" placeholder="0" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                                </div>
+                                <div class="border-t border-stone-100 pt-3 flex justify-between items-center text-sm font-bold text-stone-800">
+                                    <span>• Total Gastos:</span>
+                                    <span class="text-red-700" id="subtotal-gastos">$${totals.gastos.toLocaleString()}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- INGRESOS -->
+                        <div class="bg-white border border-stone-200/80 p-6 rounded-2xl shadow-sm space-y-4">
+                            <div class="flex items-center gap-2 border-b border-stone-100 pb-3 text-emerald-700">
+                                <i data-lucide="trending-up" class="w-5 h-5"></i>
+                                <h3 class="text-lg font-bold text-stone-950">Ingresos</h3>
+                            </div>
+                            
+                            <div class="space-y-3.5 flex-1 flex flex-col justify-between">
+                                <div class="space-y-3.5">
+                                    <div>
+                                        <label class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5">• Venta de huevos ($)</label>
+                                        <input type="number" min="0" value="${finObject.ventaHuevos || ''}" oninput="updateFinanceField('ventaHuevos', this.value)" placeholder="0" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5">• Venta de gallinas ($)</label>
+                                        <input type="number" min="0" value="${finObject.ventaGallinas || ''}" oninput="updateFinanceField('ventaGallinas', this.value)" placeholder="0" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5">• Otros ingresos ($)</label>
+                                        <input type="number" min="0" value="${finObject.otrosIngresos || ''}" oninput="updateFinanceField('otrosIngresos', this.value)" placeholder="0" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                                    </div>
+                                    <div class="border-t border-stone-100 pt-3 flex justify-between items-center text-sm font-bold text-stone-800">
+                                        <span>• Total Ingresos:</span>
+                                        <span class="text-emerald-700" id="subtotal-ingresos">$${totals.ingresos.toLocaleString()}</span>
+                                    </div>
+                                </div>
+
+                                <div class="bg-stone-50 p-4 rounded-xl border border-stone-100 flex items-center gap-2 text-stone-500 text-xs font-semibold mt-6">
+                                    <i data-lucide="check-circle" class="w-4.5 h-4.5 text-brand-600"></i>
+                                    Guardado automático activado en Gallinero Sand.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectFinancesMonth(val) {
+            state.currentMonth = parseInt(val);
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        // CONTROL DE DATOS Y ENLACES
+        function selectFinancesYear(val) {
+            state.currentYear = parseInt(val);
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function updateFinanceField(field, value) {
+            const selectedMonth = state.currentMonth;
+            const selectedYear = state.currentYear;
+            const finObject = getMonthlyFinance(selectedYear, selectedMonth);
+            
+            const numVal = parseFloat(value);
+            finObject[field] = isNaN(numVal) ? 0 : numVal;
+            
+            saveState();
+
+            const updatedTotals = calculateFinanceTotals(finObject);
+            const totIng = document.getElementById('tot-ingresos-display');
+            const totGas = document.getElementById('tot-gastos-display');
+            const totGan = document.getElementById('tot-ganancia-display');
+            const subGas = document.getElementById('subtotal-gastos');
+            const subIng = document.getElementById('subtotal-ingresos');
+
+            if (totIng) totIng.textContent = `$${updatedTotals.ingresos.toLocaleString()}`;
+            if (totGas) totGas.textContent = `$${updatedTotals.gastos.toLocaleString()}`;
+            if (subGas) subGas.textContent = `$${updatedTotals.gastos.toLocaleString()}`;
+            if (subIng) subIng.textContent = `$${updatedTotals.ingresos.toLocaleString()}`;
+            if (totGan) {
+                totGan.textContent = `$${updatedTotals.ganancia.toLocaleString()}`;
+                const parent = totGan.parentElement;
+                if (updatedTotals.ganancia >= 0) {
+                    parent.className = "bg-emerald-900 text-white p-5 rounded-2xl transition duration-150";
+                } else {
+                    parent.className = "bg-red-900 text-white p-5 rounded-2xl transition duration-150";
+                }
+            }
+        }
+
+        function getMonthlyFinance(year, month) {
+            const key = `${year}-${String(month + 1).padStart(2, '0')}`;
+            if (!state.finances[key]) {
+                state.finances[key] = {
+                    alimento: 0,
+                    cama: 0,
+                    agua: 0,
+                    med: 0,
+                    mant: 0,
+                    compra: 0,
+                    ventaHuevos: 0,
+                    ventaGallinas: 0,
+                    otrosIngresos: 0
+                };
+            }
+            return state.finances[key];
+        }
+
+        function calculateFinanceTotals(finObject) {
+            const gastos = (finObject.alimento || 0) + 
+                           (finObject.cama || 0) + 
+                           (finObject.agua || 0) + 
+                           (finObject.med || 0) + 
+                           (finObject.mant || 0) + 
+                           (finObject.compra || 0);
+            
+            const ingresos = (finObject.ventaHuevos || 0) + 
+                             (finObject.ventaGallinas || 0) + 
+                             (finObject.otrosIngresos || 0);
+            
+            const ganancia = ingresos - gastos;
+
+            return { gastos, ingresos, ganancia };
+        }
+
+        function getEggsCollectedInMonth(year, month) {
+            let total = 0;
+            const prefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+            if (state && state.calendarTasks) {
+                for (const dateKey in state.calendarTasks) {
+                    if (dateKey.startsWith(prefix) && state.calendarTasks[dateKey]) {
+                        const val = state.calendarTasks[dateKey].eggsCollected;
+                        if (val !== undefined && val !== null) {
+                            total += parseInt(val) || 0;
+                        }
+                    }
+                }
+            }
+            return total;
+        }
+
+        // 10. FUNCIONES AUXILIARES DE FORMATO E INTERFAZ
+        function getMonthName(monthIdx) {
+            return MONTHS[monthIdx];
+        }
+
+        function formatDateString(dateStr) {
+            const [y, m, d] = dateStr.split('-');
+            return `${d}/${m}/${y}`;
+        }
+
+        // 11. MANEJADORES DE DIÁLOGOS DE CONFIRMACIÓN Y TOASTS
+        function showCustomModal(options) {
+            const modal = document.getElementById('custom-modal');
+            const titleEl = document.getElementById('modal-title');
+            const bodyEl = document.getElementById('modal-body');
+            const btnConfirm = document.getElementById('modal-btn-confirm');
+            const btnCancel = document.getElementById('modal-btn-cancel');
+
+            titleEl.textContent = options.title || 'Atención';
+            bodyEl.textContent = options.text || '';
+
+            btnConfirm.onclick = () => {
+                modal.classList.add('hidden');
+                if (options.onConfirm) options.onConfirm();
+            };
+
+            if (options.showCancel) {
+                btnCancel.classList.remove('hidden');
+                btnCancel.onclick = () => {
+                    modal.classList.add('hidden');
+                    if (options.onCancel) options.onCancel();
+                };
+            } else {
+                btnCancel.classList.add('hidden');
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        let toastTimeout;
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-message');
+            const iconEl = document.getElementById('toast-icon');
+
+            msgEl.textContent = message;
+
+            if (type === 'success') {
+                iconEl.setAttribute('data-lucide', 'check-circle-2');
+                iconEl.className = "w-5 h-5 text-brand-400";
+            } else {
+                iconEl.setAttribute('data-lucide', 'alert-circle');
+                iconEl.className = "w-5 h-5 text-red-400";
+            }
+            lucide.createIcons();
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+                toast.classList.remove('translate-y-0', 'opacity-100');
+            }, 3000);
+        }
+
+        // 12. IMPRESIÓN SENSITIVA
+        function imprimirReporte() {
+            document.body.classList.add('print-dashboard');
+            window.print();
+            
+            setTimeout(() => {
+                document.body.classList.remove('print-dashboard');
+            }, 1000);
+        }
+
+        function imprimirRegistroPoblacion() {
+            document.body.classList.add('print-poblacion');
+            window.print();
+            
+            setTimeout(() => {
+                document.body.classList.remove('print-poblacion');
+            }, 1000);
+        }
+
+        // 13. INICIALIZACIÓN COMPLETA AL CARGAR EL DOM
+        window.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            navigate('dashboard');
+            
+            // Modal de aviso al cargar el Dashboard en día 30+
+            const today = new Date();
+            if (today.getDate() >= 30 && !state.alertDismissed) {
+                setTimeout(() => {
+                    showCustomModal({
+                        title: "Sugerencia de Cierre de Mes",
+                        text: "Hemos detectado que te encuentras en el día 30 o superior del mes en curso. Te sugerimos imprimir el reporte completo de tu Dashboard para respaldar tu información contable y operativa antes de vaciar los datos transaccionales.",
+                        showCancel: false,
+                        onConfirm: () => {
+                            state.alertDismissed = true;
+                            saveState();
+                        }
+                    });
+                }, 800);
+            }
+        });
+    </script>
+</body>
+</html>
