@@ -212,6 +212,9 @@
             "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
         ];
 
+        // RANGO EXTENDIDO DE AÑOS HASTA EL 2035
+        const YEARS = [2025, 2026, 2027, 2028, 2029, 2030, 2031, 2032, 2033, 2034, 2035];
+
         const QUESTIONS = [
             { id: 1, text: "¿Muestra cansancio severo, letargo o desgano extremo?" },
             { id: 2, text: "¿Tiene las plumas notablemente erizadas, aspecto encorvado o triste?" },
@@ -436,12 +439,24 @@
                                 ${MONTHS.map((m, idx) => `<option value="${idx}" ${idx === selectedMonth ? 'selected' : ''}>${m}</option>`).join('')}
                             </select>
                             <select onchange="selectDashboardYear(this.value)" class="bg-white border border-stone-200 rounded-xl px-3 py-2 text-sm font-bold text-stone-700 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm">
-                                ${[2025, 2026, 2027, 2028].map(y => `<option value="${y}" ${y === selectedYear ? 'selected' : ''}>${y}</option>`).join('')}
+                                ${YEARS.map(y => `<option value="${y}" ${y === selectedYear ? 'selected' : ''}>${y}</option>`).join('')}
                             </select>
                             <button onclick="imprimirReporte()" class="bg-brand-700 hover:bg-brand-800 text-white font-bold py-2 px-3.5 rounded-xl transition shadow-lg shadow-brand-900/10 text-sm flex items-center gap-1.5 h-10">
                                 <i data-lucide="printer" class="w-4 h-4"></i>
                                 Imprimir
                             </button>
+                            
+                            <!-- Botones de Respaldo de Base de Datos -->
+                            <button onclick="exportarDatos()" title="Guardar copia de seguridad en tu dispositivo" class="bg-stone-100 hover:bg-stone-200 text-stone-700 border border-stone-300 font-bold py-2 px-3.5 rounded-xl transition text-sm flex items-center gap-1.5 h-10 shadow-sm">
+                                <i data-lucide="download" class="w-4 h-4"></i>
+                                Exportar
+                            </button>
+                            <button onclick="triggerImportarDatos()" title="Cargar copia de seguridad desde tu dispositivo" class="bg-stone-800 hover:bg-stone-900 text-white font-bold py-2 px-3.5 rounded-xl transition text-sm flex items-center gap-1.5 h-10 shadow-md">
+                                <i data-lucide="upload" class="w-4 h-4"></i>
+                                Importar
+                            </button>
+                            <!-- Input de archivo oculto -->
+                            <input type="file" id="import-file-input" accept=".json" onchange="importarDatos(event)" class="hidden">
                         </div>
                     </div>
 
@@ -584,7 +599,7 @@
                             </div>
 
                             <div class="pt-6 relative z-10 no-print">
-                                <button onclick="navigate('finanzas')" class="w-full text-center bg-white text-brand-900 font-bold py-2.5 px-4 rounded-xl hover:bg-brand-50 transition text-sm flex items-center justify-center gap-2 shadow">
+                                <button onclick="navigate('finanzas')" class="w-full text-center bg-white text-brand-900 font-bold py-2.5 px-4 rounded-xl hover:bg-brand-50 transition text-sm flex items-center justify-center gap-2 shadow animate-pulse">
                                     Modificar Finanzas del Mes
                                     <i data-lucide="arrow-right" class="w-4 h-4"></i>
                                 </button>
@@ -796,34 +811,6 @@
                     lucide.createIcons();
                 }
             });
-        }
-
-        function editChicken(id) {
-            const chicken = state.chickens.find(c => c.id === id);
-            if (!chicken) return;
-
-            showCustomModal({
-                title: `Editar a ${chicken.nombre}`,
-                text: "Escribe el nuevo nombre de la gallina a continuación. (El cambio de estado debe hacerse vía diagnóstico o edición directa):",
-                showCancel: true,
-                onConfirm: () => {
-                    const newName = prompt("Nuevo nombre de la gallina:", chicken.nombre);
-                    if (newName && newName.trim() !== "") {
-                        chicken.nombre = newName.trim();
-                        saveState();
-                        showToast("Información actualizada.");
-                        renderCurrentTab();
-                        lucide.createIcons();
-                    }
-                }
-            });
-        }
-
-        function diagnoseChicken(id) {
-            state.drPollo.selectedChickenId = id;
-            state.drPollo.currentQuestionIndex = 0;
-            state.drPollo.answers = [];
-            navigate('drpollo');
         }
 
         // CÁLCULOS DINÁMICOS DE EDAD
@@ -1072,7 +1059,7 @@
                 result.gravedad = "Moderada";
                 result.descripcion = "Enfermedad del tracto respiratorio superior caracterizada por estornudos, secreciones, ruidos al respirar u ojos con moco e inflamación.";
                 result.tratamientoNatural = "Hacer vaporizaciones directas con hojas de eucalipto en su recinto de descanso por las noches. Agregar dientes de ajo machacados y cebolla morada picada en el agua de bebida (antibióticos naturales muy potentes).";
-                result.tratamientoMedico = "Sugerida la cuarentena. Si los síntomas persisten por más de 48 horas, administrar de manera obligatoria antibióticos específicos como Tilosina soluble o Enrofloxacina oral de uso avícola. Para casos muy severos de postración, se requerirá la inyección intramuscular de Oxitetraciclina líquida veterinaria.";
+                result.tratamientoMedico = "Sugerida la cuarentena. Si los síntomas persisten por más de 48 horas, administrar de manera obligatoria antibióticos específicos como Tilosina soluble o Enrofloxacina oral de uso avícola. Para casos muy severos de postración, se requerirá la inyección intramuscular de Oxitetraciclina líquica veterinaria.";
                 result.sugiereCuarentena = true;
                 result.sugiereTratamiento = true;
             } else if (parasiticScore >= 2) {
@@ -1086,6 +1073,29 @@
             }
 
             return result;
+        }
+
+        // COPIAR DIAGNÓSTICO DOCTOR POLLO PARA WHATSAPP
+        function copyDoctorPolloReport() {
+            const chicken = state.chickens.find(c => c.id === state.drPollo.selectedChickenId);
+            if (!chicken) return;
+            const report = calculateDiagnosis();
+            const ageStr = calculateAge(chicken.nacimiento);
+
+            let msg = `🩺 *Doctor Pollo - Reporte Clínico de Diagnóstico*\n`;
+            msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
+            msg += `🐔 *Ave diagnosticada:* ${chicken.nombre}\n`;
+            msg += `🎂 *Edad:* ${ageStr}\n`;
+            msg += `🚨 *Gravedad:* ${report.gravedad}\n\n`;
+
+            msg += `🔍 *Diagnóstico Presuntivo:*\n*${report.enfermedad}*\n\n`;
+            msg += `📝 *Sintomatología:*\n_${report.descripcion}_\n\n`;
+            msg += `🌱 *Tratamiento Natural Recomendado:*\n${report.tratamientoNatural}\n\n`;
+            msg += `💊 *Tratamiento Médico Recomendado:*\n${report.tratamientoMedico}\n`;
+            msg += `━━━━━━━━━━━━━━━━━━━━━\n`;
+            msg += `📌 _Gallinero Sand - Control Avícola Premium_`;
+
+            copyTextToClipboard(msg);
         }
 
         function renderDiagnosisResult() {
@@ -1127,10 +1137,16 @@
                         </div>
                     </div>
 
-                    <!-- Acciones Automatizadas -->
+                    <!-- Acciones Automatizadas (Incluyendo Copiar WhatsApp) -->
                     <div class="border-t border-stone-100 pt-5 space-y-3">
                         <h4 class="text-xs font-bold text-stone-400 uppercase tracking-wider">Acciones Automatizadas</h4>
                         <div class="flex flex-wrap gap-2">
+                            <button onclick="copyDoctorPolloReport()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-md hover:scale-[1.01] duration-150">
+                                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.665.989 3.3 1.489 5.361 1.49 5.433 0 9.852-4.414 9.855-9.842.002-2.63-1.013-5.101-2.859-6.95S14.839 1.961 12.21 1.96c-5.438 0-9.859 4.417-9.862 9.848-.001 1.716.446 3.388 1.296 4.857L2.64 20.3l3.96-.911zM17.15 14.53c-.283-.141-1.67-.824-1.928-.918-.257-.094-.445-.141-.631.14-.187.281-.722.918-.885 1.1-.162.183-.325.207-.608.066-.282-.141-1.194-.44-2.274-1.402-.84-.75-1.407-1.675-1.572-1.957-.165-.282-.018-.434.123-.574.127-.127.282-.329.424-.494.141-.164.188-.282.282-.47.094-.188.047-.353-.024-.494-.071-.141-.631-1.522-.865-2.083-.227-.547-.457-.473-.631-.482-.164-.008-.352-.01-.54-.01s-.494.07-.752.353c-.258.282-.986.963-.986 2.348s1.01 2.723 1.15 2.911c.141.188 1.987 3.035 4.814 4.253.673.29 1.198.463 1.608.593.677.215 1.293.185 1.78.113.543-.08 1.67-.682 1.905-1.34.235-.659.235-1.222.164-1.34-.07-.117-.258-.188-.541-.329z"/>
+                                </svg>
+                                Copiar para WhatsApp
+                            </button>
                             ${report.sugiereCuarentena ? `
                                 <button onclick="applyDiagnosticAction('Cuarentena')" class="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow">
                                     <i data-lucide="shield-alert" class="w-4 h-4"></i> Aislar en Cuarentena
@@ -1151,29 +1167,6 @@
                     </div>
                 </div>
             `;
-        }
-
-        function applyDiagnosticAction(actionType) {
-            const chicken = state.chickens.find(c => c.id === state.drPollo.selectedChickenId);
-            if (!chicken) return;
-
-            let finalStateName = 'Sana';
-            if (actionType === 'Cuarentena') finalStateName = 'En Cuarentena';
-            if (actionType === 'Tratamiento') finalStateName = 'En Tratamiento';
-
-            chicken.estado = finalStateName;
-            saveState();
-            showToast(`¡El estado de ${chicken.nombre} se actualizó a '${finalStateName}'!`);
-            
-            resetDiagnosis();
-            navigate('poblacion');
-        }
-
-        function resetDiagnosis() {
-            state.drPollo.currentQuestionIndex = 0;
-            state.drPollo.answers = [];
-            renderCurrentTab();
-            lucide.createIcons();
         }
 
         // 8. MÓDULO 4: CALENDARIO DE RUTINAS (Optimizado con navegación manual e inserción de datos diarios)
@@ -1212,7 +1205,7 @@
                                         ${MONTHS.map((m, idx) => `<option value="${idx}" ${idx === month ? 'selected' : ''}>${m}</option>`).join('')}
                                     </select>
                                     <select onchange="selectYear(this.value)" class="bg-stone-50 border border-stone-200 rounded-xl px-2.5 py-1.5 text-xs font-bold text-stone-700 focus:outline-none">
-                                        ${[2025, 2026, 2027, 2028].map(y => `<option value="${y}" ${y === year ? 'selected' : ''}>${y}</option>`).join('')}
+                                        ${YEARS.map(y => `<option value="${y}" ${y === year ? 'selected' : ''}>${y}</option>`).join('')}
                                     </select>
                                     <button onclick="changeMonth(1)" class="p-2 border border-stone-200 hover:bg-stone-50 rounded-xl transition text-stone-600">
                                         <i data-lucide="chevron-right" class="w-4 h-4"></i>
@@ -1220,7 +1213,7 @@
                                 </div>
                             </div>
 
-                            <!-- Leyenda Informativa de Rutinas y Frecuencias con Colores Sugeridos -->
+                            <!-- Leyenda Informativa de Rutinas y Frecuencias con Colores -->
                             <div class="flex flex-col gap-2 bg-stone-50 p-4 rounded-xl border border-stone-100/50">
                                 <div class="flex flex-wrap gap-4 text-xs font-medium text-stone-500">
                                     <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-red-100 border border-red-300 rounded-md"></span> Sin Iniciar (Rojo)</span>
@@ -1343,7 +1336,7 @@
                                 </div>
                             </div>
 
-                            <!-- Botones de Acción (Incluye el nuevo Botón Copiar para WhatsApp) -->
+                            <!-- Botones de Acción (Incluye el Botón Copiar para WhatsApp) -->
                             <div class="pt-4 border-t border-stone-100 mt-4 space-y-2">
                                 <button onclick="copyWhatsAppReport()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2 shadow-md hover:scale-[1.01] duration-150">
                                     <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
@@ -1432,13 +1425,13 @@
             try {
                 const successful = document.execCommand('copy');
                 if (successful) {
-                    showToast("¡Reporte copiado al portapapeles para WhatsApp!");
+                    showToast("¡Texto copiado al portapapeles con éxito!");
                 } else {
-                    showToast("Error al copiar el reporte.", "error");
+                    showToast("Error al copiar el texto.", "error");
                 }
             } catch (err) {
                 console.error('Fallo al copiar:', err);
-                showToast("Error al copiar el reporte.", "error");
+                showToast("Error al copiar el texto.", "error");
             }
             document.body.removeChild(textarea);
         }
@@ -1655,7 +1648,7 @@
                                 ${MONTHS.map((m, idx) => `<option value="${idx}" ${idx === selectedMonth ? 'selected' : ''}>${m}</option>`).join('')}
                             </select>
                             <select onchange="selectFinancesYear(this.value)" class="bg-white border border-stone-200 rounded-xl px-3 py-2 text-sm font-bold text-stone-700 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm">
-                                ${[2025, 2026, 2027, 2028].map(y => `<option value="${y}" ${y === selectedYear ? 'selected' : ''}>${y}</option>`).join('')}
+                                ${YEARS.map(y => `<option value="${y}" ${y === selectedYear ? 'selected' : ''}>${y}</option>`).join('')}
                             </select>
                         </div>
                     </div>
@@ -1936,7 +1929,88 @@
             }, 1000);
         }
 
-        // 13. INICIALIZACIÓN COMPLETA AL CARGAR EL DOM
+        // 13. EXPORTACIÓN E IMPORTACIÓN DE RESPALDO COMPLETO (LOCAL JSON DATABASE)
+        function exportarDatos() {
+            try {
+                const today = new Date();
+                const formatPad = (val) => String(val).padStart(2, '0');
+                const fechaStr = `${today.getFullYear()}-${formatPad(today.getMonth() + 1)}-${formatPad(today.getDate())}`;
+                const nombreArchivo = `GallineroSand_DB_${fechaStr}.json`;
+
+                // Convertimos el estado actual de la app a formato JSON
+                const datosRespaldo = JSON.stringify(state, null, 2);
+                const blob = new Blob([datosRespaldo], { type: 'application/json' });
+
+                // Crear elemento temporal para iniciar la descarga del navegador
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = nombreArchivo;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showToast("¡Base de datos exportada correctamente!");
+            } catch (err) {
+                console.error("Error al exportar datos:", err);
+                showToast("Hubo un error al exportar la base de datos.", "error");
+            }
+        }
+
+        function triggerImportarDatos() {
+            document.getElementById('import-file-input').click();
+        }
+
+        function importarDatos(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const datosImportados = JSON.parse(e.target.result);
+                    
+                    // Validación de estructura para asegurar que no se carguen archivos corruptos
+                    if (datosImportados && typeof datosImportados === 'object') {
+                        // Forzar que existan las colecciones mínimas de la app por seguridad
+                        if (!datosImportados.chickens) datosImportados.chickens = [];
+                        if (!datosImportados.calendarTasks) datosImportados.calendarTasks = {};
+                        if (!datosImportados.finances) datosImportados.finances = {};
+
+                        // Consolidamos el estado importado con el estado por defecto para evitar claves faltantes
+                        state = {
+                            ...state,
+                            ...datosImportados
+                        };
+
+                        // Asegurar sincronización de fechas actuales por consistencia de UI
+                        const today = new Date();
+                        if (state.currentMonth === undefined) state.currentMonth = today.getMonth();
+                        if (state.currentYear === undefined) state.currentYear = today.getFullYear();
+                        if (state.selectedDay === undefined) state.selectedDay = today.getDate();
+
+                        // Guardamos localmente la base de datos restaurada
+                        saveState();
+                        showToast("¡Base de datos restaurada con éxito!");
+                        
+                        // Recargamos el tab activo para refrescar las métricas e inventarios de inmediato
+                        renderCurrentTab();
+                        lucide.createIcons();
+                    } else {
+                        showToast("El archivo seleccionado no tiene una estructura de Gallinero Sand válida.", "error");
+                    }
+                } catch (err) {
+                    console.error("Error al importar datos:", err);
+                    showToast("No se pudo leer el archivo. Asegúrate de cargar un JSON válido.", "error");
+                }
+                // Limpiar la selección de archivo
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        // 14. INICIALIZACIÓN COMPLETA AL CARGAR EL DOM
         window.addEventListener('DOMContentLoaded', () => {
             loadState();
             
@@ -1966,4 +2040,3 @@
     </script>
 </body>
 </html>
-
