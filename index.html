@@ -146,7 +146,7 @@
         </div>
     </main>
 
-    <!-- MENÚ DE NAVEGACIÓN FIJADO EN LA PARTE INFERIOR (Estilo claro con opción activa en Negro Intenso) -->
+    <!-- MENÚ DE NAVEGACIÓN FIJADO EN LA PARTE INFERIOR -->
     <nav class="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-stone-200 h-16 md:h-20 py-2 px-1 flex items-center justify-around z-40 no-print shadow-lg">
         <!-- Botón Dashboard -->
         <button onclick="navigate('dashboard')" id="nav-dashboard" class="flex flex-col items-center justify-center flex-1 py-1 text-stone-400 hover:text-stone-600 transition-all duration-150">
@@ -237,24 +237,24 @@
             { id: 'limpiar_arena_expres', text: 'Limpiar Arena (exprés)', category: 'Diario' },
             { id: 'agua_fresca_sombra', text: 'Agua Fresca / Sombra', category: 'Diario' },
             { id: 'contar_aves_noche', text: 'Contar Aves (noche)', category: 'Diario' },
-            // SEMANAL
+            // SEMANAL (Naranja)
             { id: 'lavar_comederos_bebederos', text: 'Lavar Comederos/Bebederos', category: 'Semanal' },
             { id: 'rellenar_arena_nidos', text: 'Rellenar Arena y Nidos', category: 'Semanal' },
             { id: 'vinagre_manzana_agua', text: 'Vinagre de Manzana al agua', category: 'Semanal' },
             { id: 'revisar_ventiladores', text: 'Revisar Ventiladores', category: 'Semanal' },
-            // QUINCENAL
+            // QUINCENAL (Rojo)
             { id: 'revision_fisica_aleatoria', text: 'Revisión Física Aleatoria', category: 'Quincenal' },
             { id: 'limpiar_ventanas_mallas', text: 'Limpiar Ventanas/Mallas', category: 'Quincenal' },
             { id: 'cajon_bano_ceniza', text: 'Cajón de Baño de Ceniza', category: 'Quincenal' },
             { id: 'reparar_estructura', text: 'Reparar Estructura', category: 'Quincenal' },
-            // MENSUAL
+            // MENSUAL (Morado)
             { id: 'cernido_completo_arena', text: 'Cernido Completo de Arena', category: 'Mensual' },
             { id: 'desinfectar_paredes_perchas', text: 'Desinfectar Paredes/Perchas', category: 'Mensual' },
             { id: 'evaluar_desparasitacion', text: 'Evaluar Desparasitación', category: 'Mensual' },
             { id: 'suplemento_calcio', text: 'Suplemento de Calcio', category: 'Mensual' }
         ];
 
-        // 2. ESTADO GLOBAL DE LA APLICACIÓN
+        // 2. ESTADO GLOBAL DE LA APLICACIÓN (Se sincroniza al cargar)
         let state = {
             currentTab: 'dashboard',
             chickens: [],
@@ -281,20 +281,20 @@
         ];
 
         const DEFAULT_CALENDAR = {
-            '2026-05-01': { 'recolectar_huevos': true, 'limpiar_arena_expres': true, 'agua_fresca_sombra': true, 'contar_aves_noche': true, 'eggsCollected': 12 }
+            '2026-06-15': { 'recolectar_huevos': true, 'limpiar_arena_expres': true, 'agua_fresca_sombra': true, 'contar_aves_noche': true, 'eggsCollected': 12 }
         };
 
         const DEFAULT_FINANCES = {
-            '2026-05': {
-                alimento: 150,
-                cama: 45,
-                agua: 30,
-                med: 25,
-                mant: 50,
-                compra: 80,
-                ventaHuevos: 240,
-                ventaGallinas: 120,
-                otrosIngresos: 15
+            '2026-06': {
+                alimento: 160,
+                cama: 40,
+                agua: 25,
+                med: 15,
+                mant: 30,
+                compra: 0,
+                ventaHuevos: 280,
+                ventaGallinas: 60,
+                otrosIngresos: 10
             }
         };
 
@@ -307,9 +307,13 @@
                     if (!state.chickens) state.chickens = [...DEFAULT_CHICKENS];
                     if (!state.calendarTasks) state.calendarTasks = {...DEFAULT_CALENDAR};
                     if (!state.finances) state.finances = {...DEFAULT_FINANCES};
-                    if (state.currentMonth === undefined) state.currentMonth = new Date().getMonth();
-                    if (state.currentYear === undefined) state.currentYear = new Date().getFullYear();
-                    if (state.selectedDay === undefined) state.selectedDay = new Date().getDate();
+                    
+                    // Aseguramos que cargue con el mes y día actuales automáticamente
+                    const today = new Date();
+                    state.currentMonth = today.getMonth();
+                    state.currentYear = today.getFullYear();
+                    state.selectedDay = today.getDate();
+                    
                     if (!state.drPollo) state.drPollo = { selectedChickenId: '', currentQuestionIndex: 0, answers: [] };
                 } catch (e) {
                     console.error("Error cargando LocalStorage, reiniciando estado.", e);
@@ -321,9 +325,13 @@
         }
 
         function resetToDefaults() {
+            const today = new Date();
             state.chickens = [...DEFAULT_CHICKENS];
             state.calendarTasks = {...DEFAULT_CALENDAR};
             state.finances = {...DEFAULT_FINANCES};
+            state.currentMonth = today.getMonth();
+            state.currentYear = today.getFullYear();
+            state.selectedDay = today.getDate();
             state.currentTab = 'dashboard';
             saveState();
         }
@@ -415,7 +423,7 @@
                         </div>
                     ` : ''}
 
-                    <!-- Cabecera de vista con selectores de Mes y Año -->
+                    <!-- Cabecera de vista con selectores de Mes y Año (Muestra mes actual automático, selección manual) -->
                     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-stone-200/80 pb-5">
                         <div>
                             <span class="text-xs font-bold text-brand-700 uppercase tracking-widest">Resumen General</span>
@@ -423,7 +431,7 @@
                             <p class="text-sm text-stone-500 mt-1">Control de operaciones y balance financiero por períodos.</p>
                         </div>
                         <div class="flex flex-wrap items-center gap-2 no-print">
-                            <label class="text-xs font-bold text-stone-400 uppercase tracking-wider font-semibold">Ver Período:</label>
+                            <label class="text-xs font-bold text-stone-400 uppercase tracking-wider font-semibold">Seleccionar Período:</label>
                             <select onchange="selectDashboardMonth(this.value)" class="bg-white border border-stone-200 rounded-xl px-3 py-2 text-sm font-bold text-stone-700 focus:outline-none focus:ring-2 focus:ring-brand-500 shadow-sm">
                                 ${MONTHS.map((m, idx) => `<option value="${idx}" ${idx === selectedMonth ? 'selected' : ''}>${m}</option>`).join('')}
                             </select>
@@ -585,45 +593,6 @@
                     </div>
                 </div>
             `;
-        }
-
-        function selectDashboardMonth(val) {
-            state.currentMonth = parseInt(val);
-            renderCurrentTab();
-            lucide.createIcons();
-        }
-
-        function selectDashboardYear(val) {
-            state.currentYear = parseInt(val);
-            renderCurrentTab();
-            lucide.createIcons();
-        }
-
-        function triggerMonthlyReset() {
-            const mesNombre = getMonthName(state.currentMonth);
-            showCustomModal({
-                title: "Reiniciar Valores del Mes",
-                text: `¿Estás seguro de que deseas vaciar las tareas, registro de huevos y cuentas financieras de ${mesNombre} de ${state.currentYear}? Tus gallinas ingresadas permanecerán intactas. Esta acción es irreversible y se asume que ya has impreso o guardado tu reporte.`,
-                showCancel: true,
-                onConfirm: () => {
-                    const prefix = `${state.currentYear}-${String(state.currentMonth + 1).padStart(2, '0')}`;
-                    
-                    // Borrar tareas y huevos del mes
-                    for (const key in state.calendarTasks) {
-                        if (key.startsWith(prefix)) {
-                            delete state.calendarTasks[key];
-                        }
-                    }
-
-                    // Borrar finanzas de ese mes
-                    delete state.finances[prefix];
-
-                    saveState();
-                    showToast("¡Los valores del mes han sido reiniciados exitosamente!");
-                    renderCurrentTab();
-                    lucide.createIcons();
-                }
-            });
         }
 
         // 6. MÓDULO 2: POBLACIÓN (REGISTRO Y ENUMERACIÓN)
@@ -1207,7 +1176,7 @@
             lucide.createIcons();
         }
 
-        // 8. MÓDULO 4: CALENDARIO DE RUTINAS
+        // 8. MÓDULO 4: CALENDARIO DE RUTINAS (Optimizado con navegación manual e inserción de datos diarios)
         function renderCalendarioView(target) {
             const year = state.currentYear;
             const month = state.currentMonth;
@@ -1251,11 +1220,12 @@
                                 </div>
                             </div>
 
-                            <!-- Leyenda Informativa de Rutinas y Frecuencias -->
+                            <!-- Leyenda Informativa de Rutinas y Frecuencias con Colores Sugeridos -->
                             <div class="flex flex-col gap-2 bg-stone-50 p-4 rounded-xl border border-stone-100/50">
                                 <div class="flex flex-wrap gap-4 text-xs font-medium text-stone-500">
-                                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-red-100 border border-red-300 rounded-md"></span> Tareas Incompletas</span>
-                                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-green-100 border border-green-300 rounded-md"></span> Tareas Completadas</span>
+                                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-red-100 border border-red-300 rounded-md"></span> Sin Iniciar (Rojo)</span>
+                                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-yellow-100 border border-yellow-300 rounded-md"></span> En Progreso (Amarillo)</span>
+                                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-green-100 border border-green-300 rounded-md"></span> Completado (Verde)</span>
                                     <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-white border border-stone-200 rounded-md"></span> Días Futuros</span>
                                 </div>
                                 <div class="border-t border-stone-200/50 my-1"></div>
@@ -1280,7 +1250,7 @@
                                 <!-- Días del Mes -->
                                 ${Array(totalDaysInMonth).fill(0).map((_, idx) => {
                                     const dayNum = idx + 1;
-                                    const isComplete = isDayComplete(year, month, dayNum);
+                                    const dayState = getDayState(year, month, dayNum);
                                     
                                     const today = new Date();
                                     const checkDate = new Date(year, month, dayNum);
@@ -1288,9 +1258,13 @@
 
                                     let bgStyle = "bg-white border-stone-200/80 hover:border-brand-500 text-stone-700";
                                     if (isPastOrToday) {
-                                        bgStyle = isComplete 
-                                            ? "bg-green-50/70 border-green-200 text-green-800 hover:bg-green-100/50" 
-                                            : "bg-red-50/80 border-red-200 text-red-800 hover:bg-red-100/50";
+                                        if (dayState === 'complete') {
+                                            bgStyle = "bg-green-50/70 border-green-200 text-green-800 hover:bg-green-100/50";
+                                        } else if (dayState === 'partial') {
+                                            bgStyle = "bg-yellow-50/70 border-yellow-200 text-yellow-800 hover:bg-yellow-100/50";
+                                        } else {
+                                            bgStyle = "bg-red-50/80 border-red-200 text-red-800 hover:bg-red-100/50";
+                                        }
                                     }
 
                                     const isSelected = state.selectedDay === dayNum;
@@ -1301,9 +1275,11 @@
                                             <span class="text-xs font-bold leading-none">${dayNum}</span>
                                             <div class="w-full flex justify-between items-center mt-1">
                                                 ${isPastOrToday 
-                                                    ? isComplete 
+                                                    ? dayState === 'complete' 
                                                         ? `<i data-lucide="check-circle-2" class="w-3.5 h-3.5 text-green-600"></i>` 
-                                                        : `<i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-red-600"></i>`
+                                                        : dayState === 'partial'
+                                                            ? `<i data-lucide="alert-circle" class="w-3.5 h-3.5 text-yellow-500 font-semibold animate-pulse"></i>`
+                                                            : `<i data-lucide="alert-triangle" class="w-3.5 h-3.5 text-red-600"></i>`
                                                     : `<span class="w-1.5 h-1.5 rounded-full bg-stone-300"></span>`
                                                 }
                                                 <span class="text-[9px] font-bold text-stone-400 leading-none">
@@ -1316,7 +1292,7 @@
                             </div>
                         </div>
 
-                        <!-- Panel Derecho: Checklist de Tareas del Día Seleccionado -->
+                        <!-- Panel Derecho: Checklist de Tareas del Día Seleccionado y Botón Copiar WhatsApp -->
                         <div class="bg-white border border-stone-200/80 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
                             <div class="space-y-4">
                                 <div>
@@ -1341,9 +1317,11 @@
                                         class="w-full px-3 py-2 bg-white border border-amber-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-bold text-stone-800">
                                 </div>
 
-                                <!-- Checklist de tareas (Con colores sugeridos por prioridad) -->
-                                <div class="space-y-2.5 max-h-[340px] overflow-y-auto pr-1">
-                                    ${dailyTasksList.map(task => {
+                                <!-- Checklist de tareas (Con colores de prioridad) -->
+                                <div class="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
+                                    ${dailyTasksList.length === 0 ? `
+                                        <p class="text-xs text-stone-400 text-center py-4">No hay tareas asignadas para este día.</p>
+                                    ` : dailyTasksList.map(task => {
                                         const isChecked = savedProgress[task.id] === true;
                                         let catColor = "bg-stone-100 text-stone-600 border-stone-200";
                                         if (task.category === 'Semanal') catColor = "bg-orange-50 text-orange-700 border-orange-100";
@@ -1365,18 +1343,202 @@
                                 </div>
                             </div>
 
+                            <!-- Botones de Acción (Incluye el nuevo Botón Copiar para WhatsApp) -->
                             <div class="pt-4 border-t border-stone-100 mt-4 space-y-2">
-                                <button onclick="markAllTasksComplete('${selectedDateKey}', true)" class="w-full bg-brand-700 hover:bg-brand-800 text-white font-bold py-2.5 rounded-xl transition text-xs flex items-center justify-center gap-1.5 shadow">
-                                    <i data-lucide="check-square" class="w-4.5 h-4.5"></i> Completar Todas las Tareas
+                                <button onclick="copyWhatsAppReport()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2 shadow-md hover:scale-[1.01] duration-150">
+                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+                                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.665.989 3.3 1.489 5.361 1.49 5.433 0 9.852-4.414 9.855-9.842.002-2.63-1.013-5.101-2.859-6.95S14.839 1.961 12.21 1.96c-5.438 0-9.859 4.417-9.862 9.848-.001 1.716.446 3.388 1.296 4.857L2.64 20.3l3.96-.911zM17.15 14.53c-.283-.141-1.67-.824-1.928-.918-.257-.094-.445-.141-.631.14-.187.281-.722.918-.885 1.1-.162.183-.325.207-.608.066-.282-.141-1.194-.44-2.274-1.402-.84-.75-1.407-1.675-1.572-1.957-.165-.282-.018-.434.123-.574.127-.127.282-.329.424-.494.141-.164.188-.282.282-.47.094-.188.047-.353-.024-.494-.071-.141-.631-1.522-.865-2.083-.227-.547-.457-.473-.631-.482-.164-.008-.352-.01-.54-.01s-.494.07-.752.353c-.258.282-.986.963-.986 2.348s1.01 2.723 1.15 2.911c.141.188 1.987 3.035 4.814 4.253.673.29 1.198.463 1.608.593.677.215 1.293.185 1.78.113.543-.08 1.67-.682 1.905-1.34.235-.659.235-1.222.164-1.34-.07-.117-.258-.188-.541-.329z"/>
+                                    </svg>
+                                    Copiar para WhatsApp
                                 </button>
-                                <button onclick="markAllTasksComplete('${selectedDateKey}', false)" class="w-full border border-stone-200 hover:bg-stone-50 text-stone-600 font-bold py-2.5 rounded-xl transition text-xs">
-                                    Limpiar Todas las Selecciones
+                                <button onclick="markAllTasksComplete('${selectedDateKey}', true)" class="w-full bg-brand-700 hover:bg-brand-800 text-white font-bold py-2 px-4 rounded-xl transition text-xs flex items-center justify-center gap-1.5 shadow">
+                                    <i data-lucide="check-square" class="w-4 h-4"></i> Completar Todas las Tareas
+                                </button>
+                                <button onclick="markAllTasksComplete('${selectedDateKey}', false)" class="w-full border border-stone-200 hover:bg-stone-50 text-stone-600 font-bold py-2 px-4 rounded-xl transition text-xs">
+                                    Limpiar Selecciones
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
             `;
+        }
+
+        // FUNCIÓN CLAVE: Copiar Reporte para WhatsApp de manera altamente segura y compatible con iFrame
+        function copyWhatsAppReport() {
+            const year = state.currentYear;
+            const month = state.currentMonth;
+            const day = state.selectedDay;
+            const monthName = MONTHS[month];
+            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const dailyTasksList = getTasksForDate(year, month, day);
+            const savedProgress = state.calendarTasks[dateKey] || {};
+            const eggs = savedProgress.eggsCollected !== undefined ? savedProgress.eggsCollected : 0;
+
+            // Obtener nombre del día de la semana
+            const dateObj = new Date(year, month, day);
+            const weekdays = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+            const weekdayName = weekdays[dateObj.getDay()];
+
+            let completed = [];
+            let pending = [];
+
+            dailyTasksList.forEach(t => {
+                if (savedProgress[t.id] === true) {
+                    completed.push(t.text);
+                } else {
+                    pending.push(t.text);
+                }
+            });
+
+            // Estructurar el mensaje para WhatsApp con emojis
+            let msg = `🐔 *Gallinero Sand - Reporte Diario*\n`;
+            msg += `📅 *Fecha:* ${weekdayName}, ${day} de ${monthName} de ${year}\n`;
+            msg += `🥚 *Huevos Recogidos:* ${eggs} unidades\n\n`;
+
+            msg += `✅ *Tareas Realizadas (${completed.length}/${dailyTasksList.length}):*\n`;
+            if (completed.length > 0) {
+                completed.forEach(t => {
+                    msg += `• ${t}\n`;
+                });
+            } else {
+                msg += `_Ninguna tarea realizada hoy._\n`;
+            }
+
+            msg += `\n❌ *Tareas Pendientes (${pending.length}):*\n`;
+            if (pending.length > 0) {
+                pending.forEach(t => {
+                    msg += `• ${t}\n`;
+                });
+            } else {
+                msg += `_¡Todas las tareas del día están completadas! 🎉_\n`;
+            }
+
+            // Copiar al portapapeles usando un método seguro para iFrames
+            copyTextToClipboard(msg);
+        }
+
+        function copyTextToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.top = '0';
+            textarea.style.left = '0';
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.focus();
+            textarea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showToast("¡Reporte copiado al portapapeles para WhatsApp!");
+                } else {
+                    showToast("Error al copiar el reporte.", "error");
+                }
+            } catch (err) {
+                console.error('Fallo al copiar:', err);
+                showToast("Error al copiar el reporte.", "error");
+            }
+            document.body.removeChild(textarea);
+        }
+
+        function selectCalendarDay(day) {
+            state.selectedDay = day;
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function selectMonth(val) {
+            state.currentMonth = parseInt(val);
+            state.selectedDay = 1; 
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        // RETORNA EL ESTADO ESPECÍFICO DE UN DÍA (complete, partial, none)
+        function getDayState(year, month, day) {
+            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            const requiredTasks = getTasksForDate(year, month, day);
+            const userProgress = state.calendarTasks[dateKey] || {};
+            if (requiredTasks.length === 0) return 'complete';
+
+            const completedCount = requiredTasks.filter(task => userProgress[task.id] === true).length;
+            if (completedCount === requiredTasks.length) {
+                return 'complete';
+            } else if (completedCount === 0) {
+                return 'none';
+            } else {
+                return 'partial';
+            }
+        }
+
+        function selectYear(val) {
+            state.currentYear = parseInt(val);
+            state.selectedDay = 1;
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function changeMonth(dir) {
+            let m = state.currentMonth + dir;
+            let y = state.currentYear;
+            if (m < 0) {
+                m = 11;
+                y--;
+            } else if (m > 11) {
+                m = 0;
+                y++;
+            }
+            state.currentMonth = m;
+            state.currentYear = y;
+            state.selectedDay = 1;
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function toggleTaskStatus(dateKey, taskId, isChecked) {
+            if (!state.calendarTasks[dateKey]) {
+                state.calendarTasks[dateKey] = {};
+            }
+            state.calendarTasks[dateKey][taskId] = isChecked;
+            saveState();
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function markAllTasksComplete(dateKey, isComplete) {
+            const dailyTasksList = getTasksForDate(state.currentYear, state.currentMonth, state.selectedDay);
+            if (!state.calendarTasks[dateKey]) {
+                state.calendarTasks[dateKey] = {};
+            }
+            dailyTasksList.forEach(t => {
+                state.calendarTasks[dateKey][t.id] = isComplete;
+            });
+            saveState();
+            showToast(isComplete ? "¡Todas las tareas marcadas como realizadas!" : "Tareas limpiadas.");
+            renderCurrentTab();
+            lucide.createIcons();
+        }
+
+        function saveEggsCollected(dateKey, val) {
+            if (!state.calendarTasks[dateKey]) {
+                state.calendarTasks[dateKey] = {};
+            }
+            const count = parseInt(val);
+            state.calendarTasks[dateKey].eggsCollected = isNaN(count) ? 0 : count;
+            
+            if (count > 0) {
+                state.calendarTasks[dateKey]['recolectar_huevos'] = true;
+            } else if (count === 0) {
+                state.calendarTasks[dateKey]['recolectar_huevos'] = false;
+            }
+            saveState();
+        }
+
+        function handleEggInputBlur() {
+            renderCurrentTab();
+            lucide.createIcons();
         }
 
         function isDayComplete(year, month, day) {
@@ -1431,6 +1593,7 @@
         }
 
         // ASIGNADOR DE TAREAS POR DÍA DE LA SEMANA SEGÚN REGLAS ESTIPULADAS
+        // DIARIOS (Siempre), SEMANALES (Lunes), QUINCENALES (Cada 2 Lunes), MENSUALES (Último Lunes)
         function getTasksForDate(year, month, day) {
             const dateObj = new Date(year, month, day);
             const dayOfWeek = dateObj.getDay();
@@ -1450,16 +1613,16 @@
                     }
                 }
 
-                // SEMANALES: Cada Lunes
+                // SEMANALES (Naranja): Cada Lunes
                 tasks.push(ROUTINE_TASKS[4], ROUTINE_TASKS[5], ROUTINE_TASKS[6], ROUTINE_TASKS[7]);
 
-                // QUINCENALES: Cada dos Lunes (1er lunes, 3er lunes, 5to lunes si existe)
+                // QUINCENALES (Rojo): Cada dos Lunes (1er lunes, 3er lunes, 5to lunes si existe)
                 const mondayIndex = mondays.indexOf(day);
                 if (mondayIndex !== -1 && mondayIndex % 2 === 0) {
                     tasks.push(ROUTINE_TASKS[8], ROUTINE_TASKS[9], ROUTINE_TASKS[10], ROUTINE_TASKS[11]);
                 }
 
-                // MENSUALES: El último lunes del mes
+                // MENSUALES (Morado): El último lunes del mes
                 if (mondays.length > 0 && day === mondays[mondays.length - 1]) {
                     tasks.push(ROUTINE_TASKS[12], ROUTINE_TASKS[13], ROUTINE_TASKS[14], ROUTINE_TASKS[15]);
                 }
@@ -1692,6 +1855,7 @@
             return MONTHS[monthIdx];
         }
 
+        // FORMATEADOR DE FECHAS
         function formatDateString(dateStr) {
             const [y, m, d] = dateStr.split('-');
             return `${d}/${m}/${y}`;
@@ -1775,15 +1939,21 @@
         // 13. INICIALIZACIÓN COMPLETA AL CARGAR EL DOM
         window.addEventListener('DOMContentLoaded', () => {
             loadState();
+            
+            // Forzamos estrictamente que la aplicación abra en el mes, año y día actual real del sistema
+            const today = new Date();
+            state.currentMonth = today.getMonth();
+            state.currentYear = today.getFullYear();
+            state.selectedDay = today.getDate();
+
             navigate('dashboard');
             
-            // Modal de aviso al cargar el Dashboard en día 30+
-            const today = new Date();
+            // Modal de sugerencia de cierre de mes
             if (today.getDate() >= 30 && !state.alertDismissed) {
                 setTimeout(() => {
                     showCustomModal({
                         title: "Sugerencia de Cierre de Mes",
-                        text: "Hemos detectado que te encuentras en el día 30 o superior del mes en curso. Te sugerimos imprimir el reporte completo de tu Dashboard para respaldar tu información contable y operativa antes de vaciar los datos transaccionales.",
+                        text: "Hemos detectado que te encuentras en el día 30 o superior del mes en curso. Te sugerimos imprimir el reporte de tu Dashboard o copiar tu reporte diario para respaldar tu información antes de vaciar los datos transaccionales del mes.",
                         showCancel: false,
                         onConfirm: () => {
                             state.alertDismissed = true;
@@ -1796,3 +1966,4 @@
     </script>
 </body>
 </html>
+
