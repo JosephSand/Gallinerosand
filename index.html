@@ -175,7 +175,7 @@
         </button>
     </nav>
 
-    <!-- SISTEMA DE MODAL PERSONALIZADO -->
+    <!-- SISTEMA DE MODAL PERSONALIZADO DE CONFIRMACIÓN -->
     <div id="custom-modal" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden no-print">
         <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-stone-200 transform scale-100 transition-all duration-200">
             <div class="flex items-start gap-3">
@@ -198,13 +198,51 @@
         </div>
     </div>
 
+    <!-- MODAL DE EDICIÓN DE GALLINA -->
+    <div id="edit-chicken-modal" class="fixed inset-0 bg-stone-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden no-print">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-stone-200">
+            <div class="flex items-center gap-2 text-brand-800 border-b border-stone-100 pb-3 mb-4">
+                <i data-lucide="edit-3" class="w-5 h-5 text-brand-600"></i>
+                <h3 class="text-lg font-bold text-stone-900">Editar Registro de Gallina</h3>
+            </div>
+            <form id="edit-chicken-form" onsubmit="saveEditedChicken(event)" class="space-y-4">
+                <input type="hidden" id="edit-id">
+                <div>
+                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5" for="edit-name">Nombre / ID</label>
+                    <input id="edit-name" type="text" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5" for="edit-birthdate">Fecha de Nacimiento</label>
+                    <input id="edit-birthdate" type="date" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white" required>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5" for="edit-status">Estado de Salud</label>
+                    <select id="edit-status" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white">
+                        <option value="Sana">Sana</option>
+                        <option value="Enferma">Enferma</option>
+                        <option value="En Cuarentena">En Cuarentena</option>
+                        <option value="En Tratamiento">En Tratamiento</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeEditModal()" class="px-4 py-2 border border-stone-200 rounded-xl text-stone-700 hover:bg-stone-50 font-semibold text-sm transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-brand-700 text-white hover:bg-brand-800 rounded-xl font-semibold text-sm transition shadow-md">
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- NOTIFICACIONES TOAST -->
     <div id="toast" class="fixed bottom-20 md:bottom-24 right-4 bg-earth-800 text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none no-print">
         <i data-lucide="check-circle-2" class="w-5 h-5 text-brand-400" id="toast-icon"></i>
         <span id="toast-message" class="text-sm font-semibold">¡Operación exitosa!</span>
     </div>
 
-    <!-- LOGICA DE LA APLICACIÓN -->
+    <!-- LÓGICA DE LA APLICACIÓN -->
     <script>
         // 1. CONFIGURACIONES GLOBALES Y VARIABLES DE CATÁLOGO (DEFINIDAS UNA SOLA VEZ)
         const MONTHS = [
@@ -279,7 +317,7 @@
             { id: 'c1', nombre: 'Clotilde', nacimiento: '2025-06-15', estado: 'Sana' },
             { id: 'c2', nombre: 'Pancracia', nacimiento: '2025-11-20', estado: 'En Tratamiento' },
             { id: 'c3', nombre: 'Turuleca', nacimiento: '2024-02-10', estado: 'Sana' },
-            { id: 'c4', nombre: 'Filomena', nacimiento: '2026-03-01', estado: 'Sana' },
+            { id: 'c4', font_size: 'Filomena', nombre: 'Filomena', nacimiento: '2026-03-01', estado: 'Sana' },
             { id: 'c5', nombre: 'Ramonita', nacimiento: '2025-09-01', estado: 'En Cuarentena' }
         ];
 
@@ -300,6 +338,13 @@
                 otrosIngresos: 10
             }
         };
+
+        // Función para actualizar iconos de forma segura sin romper el flujo si se están cargando
+        function createIconsSafe() {
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
+        }
 
         // 3. PERSISTENCIA DE DATOS (LOCALSTORAGE)
         function loadState() {
@@ -360,12 +405,14 @@
             });
 
             renderCurrentTab();
-            lucide.createIcons();
+            createIconsSafe();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function renderCurrentTab() {
             const container = document.getElementById('main-content');
+            if (!container) return;
+            
             if (state.currentTab === 'dashboard') {
                 renderDashboard(container);
             } else if (state.currentTab === 'poblacion') {
@@ -426,7 +473,7 @@
                         </div>
                     ` : ''}
 
-                    <!-- Cabecera de vista con selectores de Mes y Año (Muestra mes actual automático, selección manual) -->
+                    <!-- Cabecera de vista con selectores de Mes y Año -->
                     <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-stone-200/80 pb-5">
                         <div>
                             <span class="text-xs font-bold text-brand-700 uppercase tracking-widest">Resumen General</span>
@@ -631,6 +678,12 @@
                             <p class="text-sm text-stone-500 mt-1">Registra nuevas aves, monitorea su edad y analiza su línea de ciclo productivo.</p>
                         </div>
                         <div class="flex gap-2">
+                            <!-- Botón Guardar JSON -->
+                            <button onclick="exportarPoblacionJSON()" class="inline-flex items-center gap-2 border border-stone-200 hover:bg-stone-50 text-stone-700 font-bold py-2.5 px-4 rounded-xl transition text-sm bg-white shadow-sm">
+                                <i data-lucide="file-json" class="w-4.5 h-4.5 text-brand-600"></i>
+                                Guardar JSON
+                            </button>
+                            <!-- Botón Imprimir -->
                             <button onclick="imprimirRegistroPoblacion()" class="inline-flex items-center gap-2 border border-stone-200 hover:bg-stone-50 text-stone-700 font-bold py-2.5 px-4 rounded-xl transition text-sm bg-white shadow-sm">
                                 <i data-lucide="printer" class="w-4 h-4"></i>
                                 Imprimir Registro
@@ -673,7 +726,7 @@
                                 <thead class="bg-stone-50 text-stone-500 uppercase text-[10px] font-bold tracking-wider border-b border-stone-200/80">
                                     <tr>
                                         <th class="px-6 py-4 text-center w-16">N°</th>
-                                        <th class="px-6 py-4">Nombre/ID</th>
+                                        <th class="px-6 py-4">Nombre / ID</th>
                                         <th class="px-6 py-4">Nacimiento</th>
                                         <th class="px-6 py-4">Edad Calculada</th>
                                         <th class="px-6 py-4">Estado</th>
@@ -704,7 +757,7 @@
                                                 </td>
                                                 <td class="px-6 py-4 text-right no-print">
                                                     <div class="inline-flex gap-1">
-                                                        <button onclick="diagnoseChicken('${chicken.id}')" title="Diagnóstico Médico" class="p-2 text-brand-700 hover:bg-brand-50 rounded-lg transition duration-150">
+                                                        <button onclick="diagnoseChicken('${chicken.id}')" title="Diagnóstico Médico (Dr. Pollo)" class="p-2 text-brand-700 hover:bg-brand-50 rounded-lg transition duration-150">
                                                             <i data-lucide="heart-pulse" class="w-4.5 h-4.5"></i>
                                                         </button>
                                                         <button onclick="editChicken('${chicken.id}')" title="Editar Registro" class="p-2 text-stone-600 hover:bg-stone-100 rounded-lg transition duration-150">
@@ -762,13 +815,13 @@
         function setChickenFilter(val) {
             chickenFilter = val;
             renderCurrentTab();
-            lucide.createIcons();
+            createIconsSafe();
         }
 
         function searchChicken(val) {
             chickenSearch = val;
             renderCurrentTab();
-            lucide.createIcons();
+            createIconsSafe();
         }
 
         function addChicken(e) {
@@ -795,7 +848,62 @@
             
             document.getElementById('new-chicken-form').reset();
             renderCurrentTab();
-            lucide.createIcons();
+            createIconsSafe();
+        }
+
+        // FUNCIONES DE LAS ACCIONES DEL PANEL DE POBLACIÓN (Arreglado y garantizado en español)
+        function diagnoseChicken(id) {
+            // Guarda el ave seleccionada y redirige al asistente "Doctor Pollo"
+            state.drPollo.selectedChickenId = id;
+            state.drPollo.currentQuestionIndex = 0;
+            state.drPollo.answers = [];
+            saveState();
+            showToast("Redirigiendo a Doctor Pollo para evaluación...");
+            navigate('drpollo');
+        }
+
+        function editChicken(id) {
+            const chicken = state.chickens.find(c => c.id === id);
+            if (chicken) {
+                document.getElementById('edit-id').value = chicken.id;
+                document.getElementById('edit-name').value = chicken.nombre;
+                document.getElementById('edit-birthdate').value = chicken.nacimiento;
+                document.getElementById('edit-status').value = chicken.estado;
+                
+                // Mostrar el modal de edición
+                document.getElementById('edit-chicken-modal').classList.remove('hidden');
+                createIconsSafe();
+            }
+        }
+
+        function closeEditModal() {
+            document.getElementById('edit-chicken-modal').classList.add('hidden');
+        }
+
+        function saveEditedChicken(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-id').value;
+            const name = document.getElementById('edit-name').value;
+            const birthdate = document.getElementById('edit-birthdate').value;
+            const status = document.getElementById('edit-status').value;
+
+            if (new Date(birthdate) > new Date()) {
+                showToast("La fecha de nacimiento no puede ser del futuro.", "error");
+                return;
+            }
+
+            const chickenIndex = state.chickens.findIndex(c => c.id === id);
+            if (chickenIndex !== -1) {
+                state.chickens[chickenIndex].nombre = name;
+                state.chickens[chickenIndex].nacimiento = birthdate;
+                state.chickens[chickenIndex].estado = status;
+                
+                saveState();
+                showToast("¡Registro de gallina actualizado correctamente!");
+                closeEditModal();
+                renderCurrentTab();
+                createIconsSafe();
+            }
         }
 
         function confirmDeleteChicken(id, name) {
@@ -808,7 +916,7 @@
                     saveState();
                     showToast(`Se ha eliminado a ${name}`);
                     renderCurrentTab();
-                    lucide.createIcons();
+                    createIconsSafe();
                 }
             });
         }
@@ -818,7 +926,7 @@
             const birth = new Date(birthdateStr);
             const now = new Date();
             let diffMs = now - birth;
-            if (isNaN(diffMs) || diffMs < 0) return 'Invalida';
+            if (isNaN(diffMs) || diffMs < 0) return 'Inválida';
 
             const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
             const diffWeeks = Math.floor(diffDays / 7);
@@ -893,7 +1001,7 @@
             }
         }
 
-        // 7. MÓDULO 3: DOCTOR POLLO (RECONSTRUIDO TOTALMENTE Y SEGURO)
+        // 7. MÓDULO 3: DOCTOR POLLO
         function renderDoctorPollo(target) {
             const hasChickens = state.chickens.length > 0;
             const currentChicken = state.chickens.find(c => c.id === state.drPollo.selectedChickenId);
@@ -984,7 +1092,7 @@
                                         </div>
                                     </div>
                                 ` : `
-                                    <!-- REPORTES DE DIAGNÓSTICOS CONCLUIDO -->
+                                    <!-- REPORTE DE DIAGNÓSTICO CONCLUIDO -->
                                     ${renderDiagnosisResult()}
                                 `}
                             </div>
@@ -999,14 +1107,14 @@
             state.drPollo.currentQuestionIndex = 0;
             state.drPollo.answers = [];
             renderCurrentTab();
-            lucide.createIcons();
+            createIconsSafe();
         }
 
         function answerQuestion(val) {
             state.drPollo.answers.push(val);
             state.drPollo.currentQuestionIndex++;
             renderCurrentTab();
-            lucide.createIcons();
+            createIconsSafe();
         }
 
         function prevQuestion() {
@@ -1014,7 +1122,7 @@
                 state.drPollo.currentQuestionIndex--;
                 state.drPollo.answers.pop();
                 renderCurrentTab();
-                lucide.createIcons();
+                createIconsSafe();
             }
         }
 
@@ -1059,7 +1167,7 @@
                 result.gravedad = "Moderada";
                 result.descripcion = "Enfermedad del tracto respiratorio superior caracterizada por estornudos, secreciones, ruidos al respirar u ojos con moco e inflamación.";
                 result.tratamientoNatural = "Hacer vaporizaciones directas con hojas de eucalipto en su recinto de descanso por las noches. Agregar dientes de ajo machacados y cebolla morada picada en el agua de bebida (antibióticos naturales muy potentes).";
-                result.tratamientoMedico = "Sugerida la cuarentena. Si los síntomas persisten por más de 48 horas, administrar de manera obligatoria antibióticos específicos como Tilosina soluble o Enrofloxacina oral de uso avícola. Para casos muy severos de postración, se requerirá la inyección intramuscular de Oxitetraciclina líquica veterinaria.";
+                result.tratamientoMedico = "Sugerida la cuarentena. Si los síntomas persisten por más de 48 horas, administrar de manera obligatoria antibióticos específicos como Tilosina soluble o Enrofloxacina oral de uso avícola. Para casos muy severos de postración, se requerirá la inyección intramuscular de Oxitetraciclina líquida veterinaria.";
                 result.sugiereCuarentena = true;
                 result.sugiereTratamiento = true;
             } else if (parasiticScore >= 2) {
@@ -1075,6 +1183,18 @@
             return result;
         }
 
+        function applyDiagnosticAction(status) {
+            const chickenId = state.drPollo.selectedChickenId;
+            const chicken = state.chickens.find(c => c.id === chickenId);
+            if (chicken) {
+                chicken.estado = status;
+                saveState();
+                showToast(`¡Salud de la gallina actualizada a ${status}!`);
+                resetDiagnosis();
+                navigate('poblacion');
+            }
+        }
+
         // COPIAR DIAGNÓSTICO DOCTOR POLLO PARA WHATSAPP
         function copyDoctorPolloReport() {
             const chicken = state.chickens.find(c => c.id === state.drPollo.selectedChickenId);
@@ -1087,7 +1207,6 @@
             msg += `🐔 *Ave diagnosticada:* ${chicken.nombre}\n`;
             msg += `🎂 *Edad:* ${ageStr}\n`;
             msg += `🚨 *Gravedad:* ${report.gravedad}\n\n`;
-
             msg += `🔍 *Diagnóstico Presuntivo:*\n*${report.enfermedad}*\n\n`;
             msg += `📝 *Sintomatología:*\n_${report.descripcion}_\n\n`;
             msg += `🌱 *Tratamiento Natural Recomendado:*\n${report.tratamientoNatural}\n\n`;
@@ -1137,28 +1256,25 @@
                         </div>
                     </div>
 
-                    <!-- Acciones Automatizadas (Incluyendo Copiar WhatsApp) -->
+                    <!-- Acciones Automatizadas -->
                     <div class="border-t border-stone-100 pt-5 space-y-3">
                         <h4 class="text-xs font-bold text-stone-400 uppercase tracking-wider">Acciones Automatizadas</h4>
                         <div class="flex flex-wrap gap-2">
                             <button onclick="copyDoctorPolloReport()" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-md hover:scale-[1.01] duration-150">
-                                <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.665.989 3.3 1.489 5.361 1.49 5.433 0 9.852-4.414 9.855-9.842.002-2.63-1.013-5.101-2.859-6.95S14.839 1.961 12.21 1.96c-5.438 0-9.859 4.417-9.862 9.848-.001 1.716.446 3.388 1.296 4.857L2.64 20.3l3.96-.911zM17.15 14.53c-.283-.141-1.67-.824-1.928-.918-.257-.094-.445-.141-.631.14-.187.281-.722.918-.885 1.1-.162.183-.325.207-.608.066-.282-.141-1.194-.44-2.274-1.402-.84-.75-1.407-1.675-1.572-1.957-.165-.282-.018-.434.123-.574.127-.127.282-.329.424-.494.141-.164.188-.282.282-.47.094-.188.047-.353-.024-.494-.071-.141-.631-1.522-.865-2.083-.227-.547-.457-.473-.631-.482-.164-.008-.352-.01-.54-.01s-.494.07-.752.353c-.258.282-.986.963-.986 2.348s1.01 2.723 1.15 2.911c.141.188 1.987 3.035 4.814 4.253.673.29 1.198.463 1.608.593.677.215 1.293.185 1.78.113.543-.08 1.67-.682 1.905-1.34.235-.659.235-1.222.164-1.34-.07-.117-.258-.188-.541-.329z"/>
-                                </svg>
                                 Copiar para WhatsApp
                             </button>
                             ${report.sugiereCuarentena ? `
-                                <button onclick="applyDiagnosticAction('Cuarentena')" class="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow">
-                                    <i data-lucide="shield-alert" class="w-4 h-4"></i> Aislar en Cuarentena
+                                <button onclick="applyDiagnosticAction('En Cuarentena')" class="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow">
+                                    Aislar en Cuarentena
                                 </button>
                             ` : ''}
                             ${report.sugiereTratamiento ? `
-                                <button onclick="applyDiagnosticAction('Tratamiento')" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow">
-                                    <i data-lucide="activity" class="w-4 h-4"></i> Iniciar Tratamiento
+                                <button onclick="applyDiagnosticAction('En Tratamiento')" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow">
+                                    Iniciar Tratamiento
                                 </button>
                             ` : ''}
                             <button onclick="applyDiagnosticAction('Sana')" class="px-4 py-2.5 border border-stone-200 hover:bg-stone-50 text-stone-700 font-bold rounded-xl text-xs transition flex items-center gap-1.5">
-                                <i data-lucide="smile" class="w-4 h-4"></i> Descartar síntoma (Sana)
+                                Descartar Síntomas (Sana)
                             </button>
                             <button onclick="resetDiagnosis()" class="px-4 py-2.5 bg-stone-100 hover:bg-stone-200 text-stone-600 font-bold rounded-xl text-xs transition">
                                 Reiniciar Cuestionario
@@ -1169,7 +1285,7 @@
             `;
         }
 
-        // 8. MÓDULO 4: CALENDARIO DE RUTINAS (Optimizado con navegación manual e inserción de datos diarios)
+        // 8. MÓDULO 4: CALENDARIO DE RUTINAS
         function renderCalendarioView(target) {
             const year = state.currentYear;
             const month = state.currentMonth;
@@ -1216,17 +1332,17 @@
                             <!-- Leyenda Informativa de Rutinas y Frecuencias con Colores -->
                             <div class="flex flex-col gap-2 bg-stone-50 p-4 rounded-xl border border-stone-100/50">
                                 <div class="flex flex-wrap gap-4 text-xs font-medium text-stone-500">
-                                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-red-100 border border-red-300 rounded-md"></span> Sin Iniciar (Rojo)</span>
-                                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-yellow-100 border border-yellow-300 rounded-md"></span> En Progreso (Amarillo)</span>
-                                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-green-100 border border-green-300 rounded-md"></span> Completado (Verde)</span>
+                                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-red-100 border border-red-300 rounded-md"></span> Sin Iniciar</span>
+                                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-yellow-100 border border-yellow-300 rounded-md"></span> En Progreso</span>
+                                    <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-green-100 border border-green-300 rounded-md"></span> Completado</span>
                                     <span class="flex items-center gap-1.5"><span class="w-3 h-3 bg-white border border-stone-200 rounded-md"></span> Días Futuros</span>
                                 </div>
                                 <div class="border-t border-stone-200/50 my-1"></div>
                                 <div class="flex flex-wrap gap-3 text-[10px] font-bold uppercase tracking-wider">
                                     <span class="flex items-center gap-1.5 text-stone-600"><span class="w-2.5 h-2.5 bg-stone-100 border border-stone-300 rounded"></span> Diarias</span>
                                     <span class="flex items-center gap-1.5 text-orange-700"><span class="w-2.5 h-2.5 bg-orange-100 border border-orange-300 rounded"></span> Semanales (Lunes)</span>
-                                    <span class="flex items-center gap-1.5 text-red-700"><span class="w-2.5 h-2.5 bg-red-100 border border-red-300 rounded"></span> Quincenales (Cada 2 Lunes)</span>
-                                    <span class="flex items-center gap-1.5 text-purple-700"><span class="w-2.5 h-2.5 bg-purple-100 border border-purple-300 rounded"></span> Mensuales (Último Lunes)</span>
+                                    <span class="flex items-center gap-1.5 text-red-700"><span class="w-2.5 h-2.5 bg-red-100 border border-red-300 rounded"></span> Quincenales</span>
+                                    <span class="flex items-center gap-1.5 text-purple-700"><span class="w-2.5 h-2.5 bg-purple-100 border border-purple-300 rounded"></span> Mensuales</span>
                                 </div>
                             </div>
 
@@ -1285,7 +1401,7 @@
                             </div>
                         </div>
 
-                        <!-- Panel Derecho: Checklist de Tareas del Día Seleccionado y Botón Copiar WhatsApp -->
+                        <!-- Panel Derecho: Checklist de Tareas -->
                         <div class="bg-white border border-stone-200/80 p-6 rounded-2xl shadow-sm flex flex-col justify-between">
                             <div class="space-y-4">
                                 <div>
@@ -1310,7 +1426,7 @@
                                         class="w-full px-3 py-2 bg-white border border-amber-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 font-bold text-stone-800">
                                 </div>
 
-                                <!-- Checklist de tareas (Con colores de prioridad) -->
+                                <!-- Checklist de tareas -->
                                 <div class="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
                                     ${dailyTasksList.length === 0 ? `
                                         <p class="text-xs text-stone-400 text-center py-4">No hay tareas asignadas para este día.</p>
@@ -1336,16 +1452,13 @@
                                 </div>
                             </div>
 
-                            <!-- Botones de Acción (Incluye el Botón Copiar para WhatsApp) -->
+                            <!-- Botones de Acción -->
                             <div class="pt-4 border-t border-stone-100 mt-4 space-y-2">
                                 <button onclick="copyWhatsAppReport()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl transition text-xs flex items-center justify-center gap-2 shadow-md hover:scale-[1.01] duration-150">
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.665.989 3.3 1.489 5.361 1.49 5.433 0 9.852-4.414 9.855-9.842.002-2.63-1.013-5.101-2.859-6.95S14.839 1.961 12.21 1.96c-5.438 0-9.859 4.417-9.862 9.848-.001 1.716.446 3.388 1.296 4.857L2.64 20.3l3.96-.911zM17.15 14.53c-.283-.141-1.67-.824-1.928-.918-.257-.094-.445-.141-.631.14-.187.281-.722.918-.885 1.1-.162.183-.325.207-.608.066-.282-.141-1.194-.44-2.274-1.402-.84-.75-1.407-1.675-1.572-1.957-.165-.282-.018-.434.123-.574.127-.127.282-.329.424-.494.141-.164.188-.282.282-.47.094-.188.047-.353-.024-.494-.071-.141-.631-1.522-.865-2.083-.227-.547-.457-.473-.631-.482-.164-.008-.352-.01-.54-.01s-.494.07-.752.353c-.258.282-.986.963-.986 2.348s1.01 2.723 1.15 2.911c.141.188 1.987 3.035 4.814 4.253.673.29 1.198.463 1.608.593.677.215 1.293.185 1.78.113.543-.08 1.67-.682 1.905-1.34.235-.659.235-1.222.164-1.34-.07-.117-.258-.188-.541-.329z"/>
-                                    </svg>
                                     Copiar para WhatsApp
                                 </button>
                                 <button onclick="markAllTasksComplete('${selectedDateKey}', true)" class="w-full bg-brand-700 hover:bg-brand-800 text-white font-bold py-2 px-4 rounded-xl transition text-xs flex items-center justify-center gap-1.5 shadow">
-                                    <i data-lucide="check-square" class="w-4 h-4"></i> Completar Todas las Tareas
+                                    Completar Todas las Tareas
                                 </button>
                                 <button onclick="markAllTasksComplete('${selectedDateKey}', false)" class="w-full border border-stone-200 hover:bg-stone-50 text-stone-600 font-bold py-2 px-4 rounded-xl transition text-xs">
                                     Limpiar Selecciones
@@ -1357,7 +1470,6 @@
             `;
         }
 
-        // FUNCIÓN CLAVE: Copiar Reporte para WhatsApp de manera altamente segura y compatible con iFrame
         function copyWhatsAppReport() {
             const year = state.currentYear;
             const month = state.currentMonth;
@@ -1368,7 +1480,6 @@
             const savedProgress = state.calendarTasks[dateKey] || {};
             const eggs = savedProgress.eggsCollected !== undefined ? savedProgress.eggsCollected : 0;
 
-            // Obtener nombre del día de la semana
             const dateObj = new Date(year, month, day);
             const weekdays = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
             const weekdayName = weekdays[dateObj.getDay()];
@@ -1384,7 +1495,6 @@
                 }
             });
 
-            // Estructurar el mensaje para WhatsApp con emojis
             let msg = `🐔 *Gallinero Sand - Reporte Diario*\n`;
             msg += `📅 *Fecha:* ${weekdayName}, ${day} de ${monthName} de ${year}\n`;
             msg += `🥚 *Huevos Recogidos:* ${eggs} unidades\n\n`;
@@ -1407,7 +1517,6 @@
                 msg += `_¡Todas las tareas del día están completadas! 🎉_\n`;
             }
 
-            // Copiar al portapapeles usando un método seguro para iFrames
             copyTextToClipboard(msg);
         }
 
@@ -1439,17 +1548,16 @@
         function selectCalendarDay(day) {
             state.selectedDay = day;
             renderCurrentTab();
-            lucide.createIcons();
+            createIconsSafe();
         }
 
         function selectMonth(val) {
             state.currentMonth = parseInt(val);
             state.selectedDay = 1; 
             renderCurrentTab();
-            lucide.createIcons();
+            createIconsSafe();
         }
 
-        // RETORNA EL ESTADO ESPECÍFICO DE UN DÍA (complete, partial, none)
         function getDayState(year, month, day) {
             const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
             const requiredTasks = getTasksForDate(year, month, day);
@@ -1470,7 +1578,7 @@
             state.currentYear = parseInt(val);
             state.selectedDay = 1;
             renderCurrentTab();
-            lucide.createIcons();
+            createIconsSafe();
         }
 
         function changeMonth(dir) {
@@ -1487,7 +1595,7 @@
             state.currentYear = y;
             state.selectedDay = 1;
             renderCurrentTab();
-            lucide.createIcons();
+            createIconsSafe();
         }
 
         function toggleTaskStatus(dateKey, taskId, isChecked) {
@@ -1497,7 +1605,7 @@
             state.calendarTasks[dateKey][taskId] = isChecked;
             saveState();
             renderCurrentTab();
-            lucide.createIcons();
+            createIconsSafe();
         }
 
         function markAllTasksComplete(dateKey, isComplete) {
@@ -1511,7 +1619,7 @@
             saveState();
             showToast(isComplete ? "¡Todas las tareas marcadas como realizadas!" : "Tareas limpiadas.");
             renderCurrentTab();
-            lucide.createIcons();
+            createIconsSafe();
         }
 
         function saveEggsCollected(dateKey, val) {
@@ -1531,15 +1639,7 @@
 
         function handleEggInputBlur() {
             renderCurrentTab();
-            lucide.createIcons();
-        }
-
-        function isDayComplete(year, month, day) {
-            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            const requiredTasks = getTasksForDate(year, month, day);
-            const userProgress = state.calendarTasks[dateKey] || {};
-
-            return requiredTasks.every(task => userProgress[task.id] === true);
+            createIconsSafe();
         }
 
         function getMonthTaskProgress(year, month) {
@@ -1585,19 +1685,14 @@
             };
         }
 
-        // ASIGNADOR DE TAREAS POR DÍA DE LA SEMANA SEGÚN REGLAS ESTIPULADAS
-        // DIARIOS (Siempre), SEMANALES (Lunes), QUINCENALES (Cada 2 Lunes), MENSUALES (Último Lunes)
         function getTasksForDate(year, month, day) {
             const dateObj = new Date(year, month, day);
             const dayOfWeek = dateObj.getDay();
 
             let tasks = [];
-            
-            // DIARIOS: Siempre se asignan a todos los días
             tasks.push(ROUTINE_TASKS[0], ROUTINE_TASKS[1], ROUTINE_TASKS[2], ROUTINE_TASKS[3]);
 
-            if (dayOfWeek === 1) { // Si es lunes
-                // Buscamos todos los lunes del mes actual para aplicar las reglas específicas
+            if (dayOfWeek === 1) { 
                 const mondays = [];
                 const daysInMonth = new Date(year, month + 1, 0).getDate();
                 for (let d = 1; d <= daysInMonth; d++) {
@@ -1606,16 +1701,13 @@
                     }
                 }
 
-                // SEMANALES (Naranja): Cada Lunes
                 tasks.push(ROUTINE_TASKS[4], ROUTINE_TASKS[5], ROUTINE_TASKS[6], ROUTINE_TASKS[7]);
 
-                // QUINCENALES (Rojo): Cada dos Lunes (1er lunes, 3er lunes, 5to lunes si existe)
                 const mondayIndex = mondays.indexOf(day);
                 if (mondayIndex !== -1 && mondayIndex % 2 === 0) {
                     tasks.push(ROUTINE_TASKS[8], ROUTINE_TASKS[9], ROUTINE_TASKS[10], ROUTINE_TASKS[11]);
                 }
 
-                // MENSUALES (Morado): El último lunes del mes
                 if (mondays.length > 0 && day === mondays[mondays.length - 1]) {
                     tasks.push(ROUTINE_TASKS[12], ROUTINE_TASKS[13], ROUTINE_TASKS[14], ROUTINE_TASKS[15]);
                 }
@@ -1635,7 +1727,6 @@
 
             target.innerHTML = `
                 <div class="space-y-6">
-                    <!-- Cabecera de Finanzas -->
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-stone-200/80 pb-5 no-print">
                         <div>
                             <span class="text-xs font-bold text-brand-700 uppercase tracking-widest">Control Contable</span>
@@ -1653,7 +1744,6 @@
                         </div>
                     </div>
 
-                    <!-- Resumen de Totales e Indicadores -->
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 no-print">
                         <div class="bg-emerald-50 border border-emerald-200 p-5 rounded-2xl">
                             <span class="text-xs font-bold uppercase tracking-wider text-emerald-700">Total Ingresos (${mesNombre})</span>
@@ -1669,9 +1759,7 @@
                         </div>
                     </div>
 
-                    <!-- Formularios de Gastos e Ingresos -->
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- GASTOS -->
                         <div class="bg-white border border-stone-200/80 p-6 rounded-2xl shadow-sm space-y-4">
                             <div class="flex items-center gap-2 border-b border-stone-100 pb-3 text-red-700">
                                 <i data-lucide="trending-down" class="w-5 h-5"></i>
@@ -1710,7 +1798,6 @@
                             </div>
                         </div>
 
-                        <!-- INGRESOS -->
                         <div class="bg-white border border-stone-200/80 p-6 rounded-2xl shadow-sm space-y-4">
                             <div class="flex items-center gap-2 border-b border-stone-100 pb-3 text-emerald-700">
                                 <i data-lucide="trending-up" class="w-5 h-5"></i>
@@ -1751,13 +1838,13 @@
         function selectFinancesMonth(val) {
             state.currentMonth = parseInt(val);
             renderCurrentTab();
-            lucide.createIcons();
+            createIconsSafe();
         }
 
         function selectFinancesYear(val) {
             state.currentYear = parseInt(val);
             renderCurrentTab();
-            lucide.createIcons();
+            createIconsSafe();
         }
 
         function updateFinanceField(field, value) {
@@ -1848,10 +1935,21 @@
             return MONTHS[monthIdx];
         }
 
-        // FORMATEADOR DE FECHAS
         function formatDateString(dateStr) {
             const [y, m, d] = dateStr.split('-');
             return `${d}/${m}/${y}`;
+        }
+
+        function selectDashboardMonth(val) {
+            state.currentMonth = parseInt(val);
+            renderCurrentTab();
+            createIconsSafe();
+        }
+
+        function selectDashboardYear(val) {
+            state.currentYear = parseInt(val);
+            renderCurrentTab();
+            createIconsSafe();
         }
 
         // 11. MANEJADORES DE DIÁLOGOS DE CONFIRMACIÓN Y TOASTS
@@ -1861,6 +1959,8 @@
             const bodyEl = document.getElementById('modal-body');
             const btnConfirm = document.getElementById('modal-btn-confirm');
             const btnCancel = document.getElementById('modal-btn-cancel');
+
+            if (!modal || !titleEl || !bodyEl || !btnConfirm || !btnCancel) return;
 
             titleEl.textContent = options.title || 'Atención';
             bodyEl.textContent = options.text || '';
@@ -1889,6 +1989,8 @@
             const msgEl = document.getElementById('toast-message');
             const iconEl = document.getElementById('toast-icon');
 
+            if (!toast || !msgEl || !iconEl) return;
+
             msgEl.textContent = message;
 
             if (type === 'success') {
@@ -1898,7 +2000,7 @@
                 iconEl.setAttribute('data-lucide', 'alert-circle');
                 iconEl.className = "w-5 h-5 text-red-400";
             }
-            lucide.createIcons();
+            createIconsSafe();
 
             toast.classList.remove('translate-y-20', 'opacity-0');
             toast.classList.add('translate-y-0', 'opacity-100');
@@ -1929,7 +2031,7 @@
             }, 1000);
         }
 
-        // 13. EXPORTACIÓN E IMPORTACIÓN DE RESPALDO COMPLETO (LOCAL JSON DATABASE)
+        // 13. EXPORTACIÓN E IMPORTACIÓN DE RESPALDO COMPLETO
         function exportarDatos() {
             try {
                 const today = new Date();
@@ -1937,11 +2039,9 @@
                 const fechaStr = `${today.getFullYear()}-${formatPad(today.getMonth() + 1)}-${formatPad(today.getDate())}`;
                 const nombreArchivo = `GallineroSand_DB_${fechaStr}.json`;
 
-                // Convertimos el estado actual de la app a formato JSON
                 const datosRespaldo = JSON.stringify(state, null, 2);
                 const blob = new Blob([datosRespaldo], { type: 'application/json' });
 
-                // Crear elemento temporal para iniciar la descarga del navegador
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
@@ -1951,15 +2051,56 @@
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
 
-                showToast("¡Base de datos exportada correctamente!");
+                showToast("¡Base de datos exportada con éxito!");
             } catch (err) {
                 console.error("Error al exportar datos:", err);
                 showToast("Hubo un error al exportar la base de datos.", "error");
             }
         }
 
+        // FUNCIÓN NUEVA: EXPORTAR SOLO DATOS DE GALLINAS EN FORMATO JSON
+        function exportarPoblacionJSON() {
+            try {
+                if (!state.chickens || state.chickens.length === 0) {
+                    showToast("No hay gallinas registradas para exportar.", "error");
+                    return;
+                }
+
+                const chickensData = state.chickens.map((c, idx) => ({
+                    numero: idx + 1,
+                    nombre: c.nombre,
+                    fecha_nacimiento: c.nacimiento,
+                    edad: calculateAge(c.nacimiento),
+                    estado_salud: c.estado
+                }));
+                
+                const dataStr = JSON.stringify(chickensData, null, 2);
+                const blob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const today = new Date();
+                const formatPad = (val) => String(val).padStart(2, '0');
+                const fechaStr = `${today.getFullYear()}-${formatPad(today.getMonth() + 1)}-${formatPad(today.getDate())}`;
+                const nombreArchivo = `GallineroSand_Gallinas_${fechaStr}.json`;
+
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = nombreArchivo;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showToast("¡Datos de gallinas exportados con éxito!");
+            } catch (err) {
+                console.error("Error al exportar JSON de gallinas:", err);
+                showToast("Hubo un error al exportar las gallinas.", "error");
+            }
+        }
+
         function triggerImportarDatos() {
-            document.getElementById('import-file-input').click();
+            const input = document.getElementById('import-file-input');
+            if (input) input.click();
         }
 
         function importarDatos(event) {
@@ -1971,50 +2112,64 @@
                 try {
                     const datosImportados = JSON.parse(e.target.result);
                     
-                    // Validación de estructura para asegurar que no se carguen archivos corruptos
                     if (datosImportados && typeof datosImportados === 'object') {
-                        // Forzar que existan las colecciones mínimas de la app por seguridad
                         if (!datosImportados.chickens) datosImportados.chickens = [];
                         if (!datosImportados.calendarTasks) datosImportados.calendarTasks = {};
                         if (!datosImportados.finances) datosImportados.finances = {};
 
-                        // Consolidamos el estado importado con el estado por defecto para evitar claves faltantes
                         state = {
                             ...state,
                             ...datosImportados
                         };
 
-                        // Asegurar sincronización de fechas actuales por consistencia de UI
                         const today = new Date();
                         if (state.currentMonth === undefined) state.currentMonth = today.getMonth();
                         if (state.currentYear === undefined) state.currentYear = today.getFullYear();
                         if (state.selectedDay === undefined) state.selectedDay = today.getDate();
 
-                        // Guardamos localmente la base de datos restaurada
                         saveState();
                         showToast("¡Base de datos restaurada con éxito!");
                         
-                        // Recargamos el tab activo para refrescar las métricas e inventarios de inmediato
                         renderCurrentTab();
-                        lucide.createIcons();
+                        createIconsSafe();
                     } else {
-                        showToast("El archivo seleccionado no tiene una estructura de Gallinero Sand válida.", "error");
+                        showToast("El archivo seleccionado no tiene una estructura válida.", "error");
                     }
                 } catch (err) {
                     console.error("Error al importar datos:", err);
                     showToast("No se pudo leer el archivo. Asegúrate de cargar un JSON válido.", "error");
                 }
-                // Limpiar la selección de archivo
                 event.target.value = '';
             };
             reader.readAsText(file);
+        }
+
+        function triggerMonthlyReset() {
+            showCustomModal({
+                title: "Reiniciar Mes",
+                text: "¿Estás seguro de que deseas reiniciar las tareas de este mes? Se eliminará el progreso diario pero se mantendrán las finanzas y la población.",
+                showCancel: true,
+                onConfirm: () => {
+                    const year = state.currentYear;
+                    const month = state.currentMonth;
+                    const prefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+                    for (const dateKey in state.calendarTasks) {
+                        if (dateKey.startsWith(prefix)) {
+                            delete state.calendarTasks[dateKey];
+                        }
+                    }
+                    saveState();
+                    showToast("¡Progreso diario del mes reiniciado!");
+                    renderCurrentTab();
+                    createIconsSafe();
+                }
+            });
         }
 
         // 14. INICIALIZACIÓN COMPLETA AL CARGAR EL DOM
         window.addEventListener('DOMContentLoaded', () => {
             loadState();
             
-            // Forzamos estrictamente que la aplicación abra en el mes, año y día actual real del sistema
             const today = new Date();
             state.currentMonth = today.getMonth();
             state.currentYear = today.getFullYear();
@@ -2022,7 +2177,6 @@
 
             navigate('dashboard');
             
-            // Modal de sugerencia de cierre de mes
             if (today.getDate() >= 30 && !state.alertDismissed) {
                 setTimeout(() => {
                     showCustomModal({
@@ -2040,3 +2194,4 @@
     </script>
 </body>
 </html>
+
