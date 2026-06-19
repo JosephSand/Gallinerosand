@@ -317,7 +317,7 @@
             { id: 'c1', nombre: 'Clotilde', nacimiento: '2025-06-15', estado: 'Sana' },
             { id: 'c2', nombre: 'Pancracia', nacimiento: '2025-11-20', estado: 'En Tratamiento' },
             { id: 'c3', nombre: 'Turuleca', nacimiento: '2024-02-10', estado: 'Sana' },
-            { id: 'c4', font_size: 'Filomena', nombre: 'Filomena', nacimiento: '2026-03-01', estado: 'Sana' },
+            { id: 'c4', nombre: 'Filomena', nacimiento: '2026-03-01', estado: 'Sana' },
             { id: 'c5', nombre: 'Ramonita', nacimiento: '2025-09-01', estado: 'En Cuarentena' }
         ];
 
@@ -356,6 +356,8 @@
                     if (!state.calendarTasks) state.calendarTasks = {...DEFAULT_CALENDAR};
                     if (!state.finances) state.finances = {...DEFAULT_FINANCES};
                     
+                    sortChickens(); // Asegurar almacenamiento ordenado de registros
+                    
                     // Aseguramos que cargue con el mes y día actuales automáticamente
                     const today = new Date();
                     state.currentMonth = today.getMonth();
@@ -375,6 +377,7 @@
         function resetToDefaults() {
             const today = new Date();
             state.chickens = [...DEFAULT_CHICKENS];
+            sortChickens();
             state.calendarTasks = {...DEFAULT_CALENDAR};
             state.finances = {...DEFAULT_FINANCES};
             state.currentMonth = today.getMonth();
@@ -385,6 +388,7 @@
         }
 
         function saveState() {
+            sortChickens(); // Garantizar ordenación justo antes de guardar en LocalStorage
             localStorage.setItem('gallinerosand_state', JSON.stringify(state));
         }
 
@@ -668,6 +672,9 @@
                 return matchFilter && matchSearch;
             });
 
+            // Determinar el número que le corresponde a la nueva gallina
+            const nextNum = getNextChickenNumber();
+
             target.innerHTML = `
                 <div class="space-y-6">
                     <!-- Cabecera -->
@@ -678,11 +685,6 @@
                             <p class="text-sm text-stone-500 mt-1">Registra nuevas aves, monitorea su edad y analiza su línea de ciclo productivo.</p>
                         </div>
                         <div class="flex gap-2">
-                            <!-- Botón Guardar JSON -->
-                            <button onclick="exportarPoblacionJSON()" class="inline-flex items-center gap-2 border border-stone-200 hover:bg-stone-50 text-stone-700 font-bold py-2.5 px-4 rounded-xl transition text-sm bg-white shadow-sm">
-                                <i data-lucide="file-json" class="w-4.5 h-4.5 text-brand-600"></i>
-                                Guardar JSON
-                            </button>
                             <!-- Botón Imprimir -->
                             <button onclick="imprimirRegistroPoblacion()" class="inline-flex items-center gap-2 border border-stone-200 hover:bg-stone-50 text-stone-700 font-bold py-2.5 px-4 rounded-xl transition text-sm bg-white shadow-sm">
                                 <i data-lucide="printer" class="w-4 h-4"></i>
@@ -786,7 +788,7 @@
                         <form id="new-chicken-form" onsubmit="addChicken(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
                             <div>
                                 <label class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5" for="form-name">Nombre / ID</label>
-                                <input id="form-name" type="text" placeholder="Ej. Clotilde, Gallina #15" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white" required>
+                                <input id="form-name" type="text" value="Gallina #${nextNum}" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 bg-white" required>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-stone-500 uppercase tracking-wide mb-1.5" for="form-birthdate">Fecha de Nacimiento</label>
@@ -835,19 +837,21 @@
                 return;
             }
 
+            // Generar identificador secuencial limpio 'c' + número correlativo
+            const nextIdNum = getNextChickenNumber();
             const newChicken = {
-                id: 'c_' + Date.now(),
+                id: 'c' + nextIdNum,
                 nombre: name,
                 nacimiento: birthdate,
                 estado: status
             };
 
             state.chickens.push(newChicken);
-            saveState();
+            saveState(); // Guarda y ordena automáticamente por identificador numérico
             showToast(`¡${name} registrada exitosamente!`);
             
             document.getElementById('new-chicken-form').reset();
-            renderCurrentTab();
+            renderCurrentTab(); // Renderiza de nuevo para actualizar el precompletado con el siguiente número
             createIconsSafe();
         }
 
@@ -944,6 +948,7 @@
             }
         }
 
+        // GENERADOR DE LÍNEA DE TIEMPO VISUAL
         function getAgeInMonths(birthdateStr) {
             const birth = new Date(birthdateStr);
             const now = new Date();
@@ -952,7 +957,6 @@
             return diffMs / (1000 * 60 * 60 * 24 * 30.43);
         }
 
-        // GENERADOR DE LÍNEA DE TIEMPO VISUAL
         function renderVisualTimeline(ageMonths) {
             const maxRange = 72;
             const percent = Math.min(100, (ageMonths / maxRange) * 100);
@@ -1215,6 +1219,14 @@
             msg += `📌 _Gallinero Sand - Control Avícola Premium_`;
 
             copyTextToClipboard(msg);
+        }
+
+        function resetDiagnosis() {
+            state.drPollo.currentQuestionIndex = 0;
+            state.drPollo.answers = [];
+            saveState();
+            renderCurrentTab();
+            createIconsSafe();
         }
 
         function renderDiagnosisResult() {
@@ -1574,6 +1586,7 @@
             }
         }
 
+        // SELECCIONAR AÑO
         function selectYear(val) {
             state.currentYear = parseInt(val);
             state.selectedDay = 1;
@@ -1608,6 +1621,7 @@
             createIconsSafe();
         }
 
+        // MARCAR TODAS LAS TAREAS
         function markAllTasksComplete(dateKey, isComplete) {
             const dailyTasksList = getTasksForDate(state.currentYear, state.currentMonth, state.selectedDay);
             if (!state.calendarTasks[dateKey]) {
@@ -1952,6 +1966,26 @@
             createIconsSafe();
         }
 
+        // FUNCIONES DE ORDENACIÓN Y CONTROL SECUENCIAL DE REGISTROS
+        function getNextChickenNumber() {
+            let maxNum = 0;
+            state.chickens.forEach(c => {
+                const num = parseInt(c.id.replace(/\D/g, '')) || 0;
+                if (num > maxNum) {
+                    maxNum = num;
+                }
+            });
+            return maxNum + 1;
+        }
+
+        function sortChickens() {
+            state.chickens.sort((a, b) => {
+                const numA = parseInt(a.id.replace(/\D/g, '')) || 0;
+                const numB = parseInt(b.id.replace(/\D/g, '')) || 0;
+                return numA - numB;
+            });
+        }
+
         // 11. MANEJADORES DE DIÁLOGOS DE CONFIRMACIÓN Y TOASTS
         function showCustomModal(options) {
             const modal = document.getElementById('custom-modal');
@@ -2058,46 +2092,6 @@
             }
         }
 
-        // FUNCIÓN NUEVA: EXPORTAR SOLO DATOS DE GALLINAS EN FORMATO JSON
-        function exportarPoblacionJSON() {
-            try {
-                if (!state.chickens || state.chickens.length === 0) {
-                    showToast("No hay gallinas registradas para exportar.", "error");
-                    return;
-                }
-
-                const chickensData = state.chickens.map((c, idx) => ({
-                    numero: idx + 1,
-                    nombre: c.nombre,
-                    fecha_nacimiento: c.nacimiento,
-                    edad: calculateAge(c.nacimiento),
-                    estado_salud: c.estado
-                }));
-                
-                const dataStr = JSON.stringify(chickensData, null, 2);
-                const blob = new Blob([dataStr], { type: 'application/json' });
-                const url = URL.createObjectURL(blob);
-                
-                const today = new Date();
-                const formatPad = (val) => String(val).padStart(2, '0');
-                const fechaStr = `${today.getFullYear()}-${formatPad(today.getMonth() + 1)}-${formatPad(today.getDate())}`;
-                const nombreArchivo = `GallineroSand_Gallinas_${fechaStr}.json`;
-
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = nombreArchivo;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-
-                showToast("¡Datos de gallinas exportados con éxito!");
-            } catch (err) {
-                console.error("Error al exportar JSON de gallinas:", err);
-                showToast("Hubo un error al exportar las gallinas.", "error");
-            }
-        }
-
         function triggerImportarDatos() {
             const input = document.getElementById('import-file-input');
             if (input) input.click();
@@ -2121,6 +2115,8 @@
                             ...state,
                             ...datosImportados
                         };
+
+                        sortChickens(); // Asegurar almacenamiento ordenado de registros tras importar
 
                         const today = new Date();
                         if (state.currentMonth === undefined) state.currentMonth = today.getMonth();
@@ -2194,4 +2190,3 @@
     </script>
 </body>
 </html>
-
